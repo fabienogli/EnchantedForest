@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace EnchantedForest
+﻿namespace EnchantedForest
 {
     internal class Program
     {
