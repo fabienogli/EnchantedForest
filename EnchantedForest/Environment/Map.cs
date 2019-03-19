@@ -51,7 +51,16 @@ namespace EnchantedForest.Environment
         {
             lock (_lock)
             {
-                Rooms[pos] |= flag; 
+                if (Rooms[pos].Equals(Entity.Nothing))
+                {
+                    Rooms[pos] = flag;
+                }
+                else
+                {
+                    Rooms[pos] |= flag;    
+                }
+
+                
             }
         }
 
@@ -131,6 +140,50 @@ namespace EnchantedForest.Environment
             AgentPos = newPos;
         }
 
+        public int GetUpFrom(int pos)
+        {
+            var newPos = pos - SquaredSize;
+            CheckBoundaries(newPos);
+            return newPos;
+        }
+
+        public int GetDownFrom(int pos)
+        {
+            var newPos = pos + SquaredSize;
+            CheckBoundaries(newPos);
+            return newPos;
+        }
+
+        public int GetLeftFrom(int pos)
+        {
+            if (pos % SquaredSize == 0)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            var newPos = pos - 1;
+            CheckBoundaries(newPos);
+            return newPos;
+        }
+
+        public int GetRightFrom(int pos)
+        {
+            if (pos % SquaredSize == SquaredSize-1)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            var newPos = pos + 1;
+            CheckBoundaries(newPos);
+            return newPos;
+        }
+
+        private void CheckBoundaries(int pos)
+        {
+            if (pos < 0 || pos >= Size)
+            {
+                throw new IndexOutOfRangeException();
+            }
+        }
+
 
         public override string ToString()
         {
@@ -141,11 +194,6 @@ namespace EnchantedForest.Environment
             }
 
             return sb.ToString();
-        }
-
-        public void ApplySnort()
-        {
-            throw new NotImplementedException();
         }
     }
 }

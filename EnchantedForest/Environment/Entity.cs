@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Text;
 
 namespace EnchantedForest.Environment
 {
@@ -13,30 +15,55 @@ namespace EnchantedForest.Environment
         Cloud = 1 << 5,
         Portal = 1 << 6
     }
-    
+
     public static class EntityStringer
     {
         public static string ObjectToString(Entity obj)
         {
-            switch (Entity.Nothing | obj)
+            if (obj.Equals(Entity.Nothing))
+            {
+                return "-";
+            }
+            
+            StringBuilder sb = new StringBuilder();
+            // todo Irindul March 19, 2019 : Mapping for one Cloud = w etc...
+            
+            sb.Append(obj.HasFlag(Entity.Agent) ? "x" : " ");
+            sb.Append(obj.HasFlag(Entity.Monster) ? "m" : " ");
+            sb.Append(obj.HasFlag(Entity.Pit) ? "p" : " ");
+            sb.Append(obj.HasFlag(Entity.Poop) ? "c" : " ");
+            sb.Append(obj.HasFlag(Entity.Cloud) ? "w" : " ");
+            sb.Append(obj.HasFlag(Entity.Portal) ? "w" : " ");
+            
+
+            return sb.ToString();
+
+            switch (obj)
             {
                 case Entity.Nothing:
-                    return "-";
-                case Entity.Nothing | Entity.Agent:
+                    return "----";
+                case Entity.Agent:
                     return "x";
-                case Entity.Nothing | Entity.Monster:
+                case Entity.Monster:
                     return "m";
-                case Entity.Nothing | Entity.Poop:
+                case Entity.Poop:
                     return "c";
-                case Entity.Nothing | Entity.Pit:
+                case Entity.Pit:
                     return "p";
-                case Entity.Nothing | Entity.Cloud:
+                case Entity.Cloud:
                     return "w";
-                case Entity.Nothing | Entity.Portal:
+                case Entity.Portal:
                     return "0";
+                case Entity.Cloud | Entity.Poop:
+                    return "b";
                 default:
                     return "-";
             }
+        }
+
+        public static string AddCharIfContains(Entity obj, Entity entity, string character)
+        {
+            return obj.HasFlag(entity) ? character : " ";
         }
     }
 }

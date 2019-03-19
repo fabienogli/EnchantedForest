@@ -70,13 +70,13 @@ namespace EnchantedForest.View
 
         private void RenderLegend()
         {
-            string empty = EntityStringer.ObjectToString(Entity.Nothing);
-            string agent = EntityStringer.ObjectToString(Entity.Agent);
-            string monster = EntityStringer.ObjectToString(Entity.Monster);
-            string poop = EntityStringer.ObjectToString(Entity.Poop);
-            string cloud = EntityStringer.ObjectToString(Entity.Cloud);
-            string portal = EntityStringer.ObjectToString(Entity.Portal);
-            string pit = EntityStringer.ObjectToString(Entity.Pit);
+            string empty = EntityStringer.ObjectToString(Entity.Nothing).Trim();
+            string agent = EntityStringer.ObjectToString(Entity.Agent).Trim();
+            string monster = EntityStringer.ObjectToString(Entity.Monster).Trim();
+            string poop = EntityStringer.ObjectToString(Entity.Poop).Trim();
+            string cloud = EntityStringer.ObjectToString(Entity.Cloud).Trim();
+            string portal = EntityStringer.ObjectToString(Entity.Portal).Trim();
+            string pit = EntityStringer.ObjectToString(Entity.Pit).Trim();
 
             //todo add "Monster & agent etc"
 

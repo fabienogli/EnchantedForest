@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 namespace EnchantedForest.Environment
@@ -23,8 +25,6 @@ namespace EnchantedForest.Environment
             Running = true;
             
             InitMap(size);
-            InitAgent();
-            
         }
 
         public Forest(Forest forest)
@@ -37,18 +37,10 @@ namespace EnchantedForest.Environment
         private void InitMap(int size)
         {
             Map = new Map(size);
-            //Todo fill map here
+            GenerateLevel();
         }
 
-        private void InitAgent()
-        {
-            // todo Irindul March 18, 2019 : Init agent at first empty tile !
-            var agentPos = Rand.Next(CurrentSize);
-            
-            Map.AddEntityAtPos(Entity.Agent, agentPos);
-            Map.AgentPos = agentPos;
-            Fitness = 0;
-        }
+       
 
         public IDisposable Subscribe(IObserver<Forest> observer)
         {
@@ -72,6 +64,90 @@ namespace EnchantedForest.Environment
                 //But every event coming from the environment should be put here
                 Thread.Sleep(50);
             }
+        }
+
+        private void NextLevel()
+        {
+            var currentSize = Map.SquaredSize;
+            Map = new Map(currentSize+1);
+            GenerateLevel();
+        }
+
+        private void GenerateLevel()
+        {
+            var emptyTiles = Map.Size;
+            while (emptyTiles > Map.Size/3)
+            {
+                var i = Rand.Next(Map.Size);
+                if (Map.ContainsEntityAtPos(Entity.Pit, i) | Map.ContainsEntityAtPos(Entity.Monster, i))
+                {
+                    continue;
+                }
+
+                var entityToPose = Rand.Next(2) == 0 ? Entity.Monster : Entity.Pit;
+                Map.AddEntityAtPos(entityToPose, i);
+                emptyTiles--;
+
+                try
+                {
+                    var up = Map.GetUpFrom(i);
+                    AddEntityAssets(entityToPose, up);
+                } catch (IndexOutOfRangeException) {}
+
+                try
+                {
+                    var down = Map.GetDownFrom(i);
+                    AddEntityAssets(entityToPose, down);
+                } catch(IndexOutOfRangeException) {}
+
+                try
+                {
+                    var left = Map.GetLeftFrom(i);
+                    AddEntityAssets(entityToPose, left);
+                } catch(IndexOutOfRangeException) {}
+
+                try
+                {
+                    var right = Map.GetRightFrom(i);
+                    AddEntityAssets(entityToPose, right);
+                } catch(IndexOutOfRangeException) {}
+            }
+            InitAgent();
+        }
+        
+        private void InitAgent()
+        {
+            HashSet<int> alreadyVisited = new HashSet<int>();
+            while (alreadyVisited.Count < Map.Size)
+            {
+                int i = Rand.Next(Map.Size);
+                if (alreadyVisited.Contains(i))
+                {
+                    continue;
+                }
+
+                alreadyVisited.Add(i);
+                if (Map.ContainsEntityAtPos(Entity.Monster, i))
+                {
+                    continue;
+                }
+
+                if (Map.ContainsEntityAtPos(Entity.Pit, i))
+                {
+                    continue;
+                }
+
+                Map.AgentPos = i;
+                Map.AddEntityAtPos(Entity.Agent, i);
+                return;
+            }
+            throw new InvalidDataException("The map is not correct");
+        }
+
+        private void AddEntityAssets(Entity entityToPose, int pos)
+        {
+            var entityAsset = entityToPose.Equals(Entity.Monster) ? Entity.Poop : Entity.Cloud;
+            Map.AddEntityAtPos(entityAsset, pos);
         }
     }
 }
