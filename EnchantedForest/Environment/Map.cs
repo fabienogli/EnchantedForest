@@ -7,6 +7,8 @@ namespace EnchantedForest.Environment
 {
     public class Map
     {
+        //todo count Poop and Wind amount
+        //todo subenum Asset etc..
         private List<Entity> Rooms { get; }
         
         public int Size => Rooms.Capacity;
@@ -15,6 +17,7 @@ namespace EnchantedForest.Environment
         
         //Storing AgentPos to avoid computation
         public int AgentPos { get; set; }
+        public int PortalPos { get; set; }
 
         private object _lock = new object();  
         
@@ -43,6 +46,7 @@ namespace EnchantedForest.Environment
                 }
 
                 AgentPos = other.AgentPos;
+                PortalPos = other.PortalPos;
             }
            
         }

@@ -75,73 +75,75 @@ namespace EnchantedForest.Environment
 
         private void GenerateLevel()
         {
-            var emptyTiles = Map.Size;
-            while (emptyTiles > Map.Size/3)
+            InitAgent();
+            InitPortal();
+            var path = GetPath();
+            var blacklisted = new HashSet<int>();
+
+            while (blacklisted.Count < Map.Size)
             {
                 var i = Rand.Next(Map.Size);
-                if (Map.ContainsEntityAtPos(Entity.Pit, i) | Map.ContainsEntityAtPos(Entity.Monster, i))
+                if (blacklisted.Contains(i))
                 {
                     continue;
                 }
 
-                var entityToPose = Rand.Next(2) == 0 ? Entity.Monster : Entity.Pit;
-                Map.AddEntityAtPos(entityToPose, i);
-                emptyTiles--;
+                if (path.Contains(i))
+                {
+                    continue;
+                }
 
+                var whichShouldGenerate = Rand.Next(3);
+                if (whichShouldGenerate == 0)
+                {
+                    continue;
+                }
+                
+                var entity = whichShouldGenerate == 1 ? Entity.Monster : Entity.Pit;
+                Map.AddEntityAtPos(entity, i);
+                
                 try
                 {
-                    var up = Map.GetUpFrom(i);
-                    AddEntityAssets(entityToPose, up);
-                } catch (IndexOutOfRangeException) {}
-
-                try
+                    path = GetPath();
+                }
+                catch (PathNotFoundException)
                 {
-                    var down = Map.GetDownFrom(i);
-                    AddEntityAssets(entityToPose, down);
-                } catch(IndexOutOfRangeException) {}
-
-                try
-                {
-                    var left = Map.GetLeftFrom(i);
-                    AddEntityAssets(entityToPose, left);
-                } catch(IndexOutOfRangeException) {}
-
-                try
-                {
-                    var right = Map.GetRightFrom(i);
-                    AddEntityAssets(entityToPose, right);
-                } catch(IndexOutOfRangeException) {}
+                    blacklisted.Add(i);
+                    Map.RemoveEntityAtPos(entity, i);
+                }
+                
             }
-            InitAgent();
+            
         }
-        
+
+        private HashSet<int> GetPath()
+        {
+            /*
+             * todo
+             * Create AStarIterator with random heuristic
+             * Find any path
+             * 
+             */
+            throw new PathNotFoundException();
+        }
+
         private void InitAgent()
         {
-            HashSet<int> alreadyVisited = new HashSet<int>();
-            while (alreadyVisited.Count < Map.Size)
+            var agentPos = Rand.Next(Map.Size);
+            Map.AgentPos = agentPos;
+            Map.AddEntityAtPos(Entity.Agent, agentPos);
+        }
+        
+        private void InitPortal()
+        {
+            int portalPos;
+            do
             {
-                int i = Rand.Next(Map.Size);
-                if (alreadyVisited.Contains(i))
-                {
-                    continue;
-                }
+                portalPos = Rand.Next(Map.Size);
+            } while (portalPos == Map.AgentPos);
 
-                alreadyVisited.Add(i);
-                if (Map.ContainsEntityAtPos(Entity.Monster, i))
-                {
-                    continue;
-                }
-
-                if (Map.ContainsEntityAtPos(Entity.Pit, i))
-                {
-                    continue;
-                }
-
-                Map.AgentPos = i;
-                Map.AddEntityAtPos(Entity.Agent, i);
-                return;
-            }
-            throw new InvalidDataException("The map is not correct");
+            Map.PortalPos = portalPos;
+            Map.AddEntityAtPos(Entity.Portal, portalPos);
         }
 
         private void AddEntityAssets(Entity entityToPose, int pos)

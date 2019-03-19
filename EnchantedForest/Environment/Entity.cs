@@ -22,7 +22,7 @@ namespace EnchantedForest.Environment
         {
             if (obj.Equals(Entity.Nothing))
             {
-                return "-";
+                return "  -   ";
             }
             
             StringBuilder sb = new StringBuilder();
@@ -33,7 +33,7 @@ namespace EnchantedForest.Environment
             sb.Append(obj.HasFlag(Entity.Pit) ? "p" : " ");
             sb.Append(obj.HasFlag(Entity.Poop) ? "c" : " ");
             sb.Append(obj.HasFlag(Entity.Cloud) ? "w" : " ");
-            sb.Append(obj.HasFlag(Entity.Portal) ? "w" : " ");
+            sb.Append(obj.HasFlag(Entity.Portal) ? "0" : " ");
             
 
             return sb.ToString();
