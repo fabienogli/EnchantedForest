@@ -1,6 +1,0 @@
-/Users/irindul/Documents/Projects/C#/EnchantedForest/EnchantedForest/bin/Debug/EnchantedForest.exe
-/Users/irindul/Documents/Projects/C#/EnchantedForest/EnchantedForest/bin/Debug/EnchantedForest.pdb
-/Users/irindul/Documents/Projects/C#/EnchantedForest/EnchantedForest/obj/Debug/EnchantedForest.csprojAssemblyReference.cache
-/Users/irindul/Documents/Projects/C#/EnchantedForest/EnchantedForest/obj/Debug/EnchantedForest.csproj.CoreCompileInputs.cache
-/Users/irindul/Documents/Projects/C#/EnchantedForest/EnchantedForest/obj/Debug/EnchantedForest.exe
-/Users/irindul/Documents/Projects/C#/EnchantedForest/EnchantedForest/obj/Debug/EnchantedForest.pdb
