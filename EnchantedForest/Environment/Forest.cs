@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
+using EnchantedForest.Environment;
 
-namespace EnchantedForest.Environment
+namespace EnchantementForest.Environment
 {
     public class Forest : IObservable<Forest>
     {
