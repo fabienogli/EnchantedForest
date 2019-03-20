@@ -3,7 +3,6 @@ using System;
 using System.Threading;
 using EnchantedForest.Environment;
 using EnchantedForest.View;
-using EnchantementForest.Environment;
 
 namespace EnchantedForest
 {
