@@ -145,6 +145,41 @@ namespace EnchantedForest.Environment
             AgentPos = newPos;
         }
 
+        public IEnumerable<int> GetSurroundingCells(int pos)
+        {
+            var surrouding = new List<int>();
+
+            try
+            {
+                surrouding.Add(GetUpFrom(pos));
+            }
+            catch (IndexOutOfRangeException)
+            {
+                
+            }
+
+            try
+            {
+                surrouding.Add(GetDownFrom(pos));
+            } catch(IndexOutOfRangeException) {}
+
+            try
+            {
+                surrouding.Add(GetLeftFrom(pos));
+            } catch(IndexOutOfRangeException){}
+
+            try
+            {
+                surrouding.Add(GetRightFrom(pos));
+            }
+            catch (IndexOutOfRangeException)
+            {
+                
+            }
+
+            return surrouding;
+        } 
+
         public int GetUpFrom(int pos)
         {
             var newPos = pos - SquaredSize;

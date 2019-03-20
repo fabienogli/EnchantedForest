@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using EnchantedForest.Agent.Effectors;
 using EnchantedForest.Environment;
 using Action = EnchantedForest.Agent.Action;
 
@@ -21,9 +22,11 @@ namespace EnchantedForest.Agent
                     return new UpEffector(Forest);
                 case Action.Down:
                     return new DownEffector(Forest);
-                    break;
-                case Action.ThrowRock:
-                    return new ShootEffector(Forest);
+                case Action.ThrowUp:
+                case Action.ThrowDown:
+                case Action.ThrowLeft:
+                case Action.ThrowRight:
+                    return new ShootEffector(Forest, action);
                 case Action.Leave:
                     return new LeaveEffector(Forest);
                 default:
@@ -38,7 +41,10 @@ namespace EnchantedForest.Agent
             dictionary.Add(Action.Down, GetEffector(Action.Down));
             dictionary.Add(Action.Left, GetEffector(Action.Left));
             dictionary.Add(Action.Right, GetEffector(Action.Right));
-            dictionary.Add(Action.ThrowRock, GetEffector(Action.ThrowRock));
+            dictionary.Add(Action.ThrowLeft, GetEffector(Action.ThrowLeft));
+            dictionary.Add(Action.ThrowRight, GetEffector(Action.ThrowRight));
+            dictionary.Add(Action.ThrowUp, GetEffector(Action.ThrowUp));
+            dictionary.Add(Action.ThrowDown, GetEffector(Action.ThrowDown));
             dictionary.Add(Action.Leave, GetEffector(Action.Leave));
             return dictionary;
         }

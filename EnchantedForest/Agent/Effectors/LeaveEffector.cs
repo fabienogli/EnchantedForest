@@ -10,7 +10,8 @@ namespace EnchantedForest.Agent
 
         public override bool DoIt()
         {
-            throw new System.NotImplementedException();
+            Forest.HandleAction(Action.Leave);
+            return true;
         }
     }
 }

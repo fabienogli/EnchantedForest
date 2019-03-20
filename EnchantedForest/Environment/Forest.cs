@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Action = EnchantedForest.Agent.Action;
 
 namespace EnchantedForest.Environment
 {
@@ -87,7 +88,8 @@ namespace EnchantedForest.Environment
                 if (proba < 15)
                 {
                     entity = Entity.Monster;
-                } else if (proba >= 15 && proba < 30)
+                }
+                else if (proba >= 15 && proba < 30)
                 {
                     entity = Entity.Pit;
                 }
@@ -95,7 +97,7 @@ namespace EnchantedForest.Environment
                 {
                     continue;
                 }
-                
+
                 Map.AddEntityAtPos(entity, i);
 
                 try
@@ -140,6 +142,7 @@ namespace EnchantedForest.Environment
                 }
             }
         }
+
         private void InitAgent()
         {
             var agentPos = Rand.Next(Map.Size);
@@ -167,7 +170,79 @@ namespace EnchantedForest.Environment
 
         public Entity ObserveCell()
         {
-            throw new NotImplementedException();
+            return Map.GetEntityAt(Map.AgentPos);
+        }
+
+        public void HandleAction(Action action)
+        {
+            switch (action)
+            {
+                case Action.Leave:
+                    if (Map.ContainsEntityAtPos(Entity.Portal, Map.AgentPos))
+                    {
+                        NextLevel();
+                    }
+
+                    return;
+            }
+
+            Map.ApplyAction(action);
+        }
+
+        public void HandleThrow(Action action)
+        {
+            try
+            {
+                int shoutedPos;
+                switch (action)
+                {
+                    case Action.ThrowUp:
+                        shoutedPos = Map.GetUpFrom(Map.AgentPos);
+                        break;
+                    case Action.ThrowDown:
+                        shoutedPos = Map.GetUpFrom(Map.AgentPos);
+                        break;
+                    case Action.ThrowRight:
+                        shoutedPos = Map.GetRightFrom(Map.AgentPos);
+                        break;
+                    case Action.ThrowLeft:
+                        shoutedPos = Map.GetLeftFrom(Map.AgentPos);
+                        break;
+                    default:
+                        return;
+                }
+
+                RippleEffect(shoutedPos);
+            }
+            catch (IndexOutOfRangeException)
+            {
+            }
+        }
+
+        private void RippleEffect(int shoutedPos)
+        {
+            //Remove monster (we shot it)  
+            Map.RemoveEntityAtPos(Entity.Monster, shoutedPos);
+            
+            foreach (var cell in Map.GetSurroundingCells(shoutedPos))
+            {
+                if (!Map.ContainsEntityAtPos(Entity.Poop, cell)) continue;
+                Map.RemoveEntityAtPos(Entity.Poop, cell);
+                SanityCheck(cell);
+            }
+
+    }
+
+        private void SanityCheck(int pos)
+        {
+            foreach (var cell in Map.GetSurroundingCells(pos))
+            {
+                if (Map.ContainsEntityAtPos(Entity.Monster, cell))
+                {
+                    Map.AddEntityAtPos(Entity.Monster, pos);
+                }
+            }
         }
     }
+
 }

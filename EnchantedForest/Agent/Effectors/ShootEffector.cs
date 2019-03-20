@@ -1,16 +1,19 @@
 using EnchantedForest.Environment;
 
-namespace EnchantedForest.Agent
+namespace EnchantedForest.Agent.Effectors
 {
     public class ShootEffector : Effector
     {
-        public ShootEffector(Forest forest) : base(forest)
+        private Action ShootingAction {get;}
+        public ShootEffector(Forest forest, Action shootingAction) : base(forest)
         {
+            ShootingAction = shootingAction;
         }
 
         public override bool DoIt()
         {
-            throw new System.NotImplementedException();
+            Forest.HandleThrow(ShootingAction);
+            return true;
         }
     }
 }
