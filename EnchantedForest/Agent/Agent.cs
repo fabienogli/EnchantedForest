@@ -14,6 +14,7 @@ namespace EnchantedForest.Agent
         public const int MaxDepth = 5;
 //        private RoomSensor RoomSensor { get; }
 //        private PerformanceSensor PerformanceSensor { get; }
+        private CellSensor CellSensor;
 
         private Dictionary<Action, Effector> Effectors { get; }
 
@@ -24,40 +25,23 @@ namespace EnchantedForest.Agent
         private int Performance { get; set; }
         private Queue<Action> Intents { get; }
 
-        public int OptimalSequenceLength { private get; set; }
 
         private int ActionDone { get; set; }
 
-        private bool IsInformed { get; }
-        public Agent(Forest environment, bool informed)
+        public Agent(Forest environment)
         {
             Environment = environment;
 //            RoomSensor = new RoomSensor();
 //            PerformanceSensor = new PerformanceSensor();
+            CellSensor = new CellSensor();
             Intents = new Queue<Action>();
-            OptimalSequenceLength = ReadOptimalFromFileOrDefault(MaxDepth);
             ActionDone = 0;
-            IsInformed = informed;
             EffectorFactory.Forest = environment;
             Effectors = EffectorFactory.GetEffectors();
                 
         }
 
-        private static int ReadOptimalFromFileOrDefault(int defaultValue)
-        {
-            try
-            {
-                using (TextReader reader = File.OpenText(OptimalFile))
-                {
-                    return int.Parse(reader.ReadLine());
-                }
-            }
-            catch (FileNotFoundException)
-            {
-                return defaultValue;
-            }
-        }
-
+        
         public void Run()
         {
            
@@ -83,47 +67,25 @@ namespace EnchantedForest.Agent
         {
 //            Beliefs = RoomSensor.Observe(Environment);
 //            Performance = PerformanceSensor.Observe(Environment);
-
-            if (ActionDone > OptimalSequenceLength)
-            {
-                Intents.Clear();
-                ActionDone = 0;
-                return;
-            }
-
+            Entity observe = CellSensor.Observe(Environment);
+            
             if (Intents.Any())
             {
                 var intent = Intents.Dequeue();
                 var effector = Effectors[intent];
-//                effector.DoIt();
-                ActionDone++;
+                effector.DoIt();
             }
             else
             {
-                ActionDone = 0;
-                PlanIntents(Beliefs);
+                PlanIntents(observe);
             }
         }
 
-        private void PlanIntents(Map beliefs)
+        private void PlanIntents(Entity observe)
         {
             throw new NotImplementedException();
         }
 
-        public int Learn()
-        {
-            var oldPerf = Performance;
-            do
-            {
-                Step();
-            } while (Intents.Any());
-
-//            var newPerf = PerformanceSensor.Observe(Environment);
-
-//            return newPerf - oldPerf;
-            return 1;
-        }
-        
 //        private void PlanIntents(Map actual)
 //        {
 //            var state = new State(actual, Action.Idle);
