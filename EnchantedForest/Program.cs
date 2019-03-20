@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Threading;
 using EnchantedForest.Environment;
 using EnchantedForest.View;
@@ -12,14 +11,12 @@ namespace EnchantedForest
         {
             Run();
         }
-        
+
         private static void Run()
         {
-            
-
-            var forest = new Forest(3*3);
+            var forest = new Forest(3 * 3);
             var viewer = new Viewer(true);
-           // var agent = new VacuumAgent(mansion, informed);
+            // var agent = new VacuumAgent(mansion, informed);
             viewer.Subscribe(forest);
 
             ThreadStart viewStarter = viewer.Run;
@@ -34,6 +31,5 @@ namespace EnchantedForest
             //var agentThread = new Thread(agentStarter);
             //agentThread.Start();
         }
-
     }
 }
