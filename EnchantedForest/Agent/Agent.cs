@@ -14,12 +14,11 @@ namespace EnchantedForest.Agent
     {
          private const string OptimalFile = "optimal";
         public const int MaxDepth = 5;
-//        private RoomSensor RoomSensor { get; }
-//        private PerformanceSensor PerformanceSensor { get; }
         private CellSensor CellSensor;
+        private List<int> Available;
 
         private Dictionary<Action, Effector> Effectors { get; }
-        private Dictionary<int, Dictionary<Entity, Probabilite>> Probs;
+        private Dictionary<int, Dictionary<Entity, double>> Probs;
 
         private Forest Environment { get; }
 
@@ -34,8 +33,6 @@ namespace EnchantedForest.Agent
         public Agent(Forest environment)
         {
             Environment = environment;
-//            RoomSensor = new RoomSensor();
-//            PerformanceSensor = new PerformanceSensor();
             CellSensor = new CellSensor();
             Intents = new Queue<Action>();
             ActionDone = 0;
@@ -86,7 +83,36 @@ namespace EnchantedForest.Agent
 
         private void PlanIntents(Entity observe)
         {
+            double treshold = 0.56;
+            double max_win = -1;
+            int max_i = 0;
+            Action action = Action.Idle;
+            foreach (int cellAvailable in Available)
+            {
+                if (Probs[cellAvailable][Entity.Monster] > treshold)
+                {
+                    Intents.Enqueue(Action.ThrowRock);
+                    InfereAction(cellAvailable, Action.ThrowRock);
+                }
+                if (Probs[cellAvailable][Entity.Portal] > max_win)
+                {
+                    max_win = Probs[cellAvailable][Entity.Portal];
+                    max_i = cellAvailable;
+                    action = convertPosToAction(cellAvailable);
+                }
+            }
+            Intents.Enqueue(action);
             throw new NotImplementedException();
+        }
+
+        private Action convertPosToAction(int cellAvailable)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void InfereAction(int pos, Action action)
+        {
+            
         }
 
 //        private void PlanIntents(Map actual)
