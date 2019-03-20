@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using EnchantedForest.Environment;
-using Action = EnchantedForest.Environment.Action;
+using Action = EnchantedForest.Agent.Action;
+using Entity = EnchantedForest.Environment.Entity;
+using Probabilite = EnchantedForest.Agent.Probabilite;
 
 namespace EnchantedForest.Agent
 {
@@ -17,6 +19,7 @@ namespace EnchantedForest.Agent
         private CellSensor CellSensor;
 
         private Dictionary<Action, Effector> Effectors { get; }
+        private Dictionary<int, Dictionary<Entity, Probabilite>> Probs;
 
         private Forest Environment { get; }
 

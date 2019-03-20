@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using EnchantedForest.Environment;
-using Action = EnchantedForest.Environment.Action;
+using Action = EnchantedForest.Agent.Action;
 
 namespace EnchantedForest.Agent
 {

@@ -1,4 +1,4 @@
-namespace EnchantedForest.Environment
+namespace EnchantedForest.Agent
 {
     public enum Action
     {
