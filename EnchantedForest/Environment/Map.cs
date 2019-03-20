@@ -9,9 +9,9 @@ namespace EnchantedForest.Environment
     {
         //todo count Poop and Wind amount
         //todo subenum Asset etc..
-        private List<Entity> Rooms { get; }
+        private List<Entity> Cells { get; }
         
-        public int Size => Rooms.Capacity;
+        public int Size => Cells.Capacity;
 
         public int SquaredSize => (int) Math.Sqrt(Size);
         
@@ -23,7 +23,7 @@ namespace EnchantedForest.Environment
         
         public Map(int size)
         {
-            Rooms = new List<Entity>(size);
+            Cells = new List<Entity>(size);
             InitEntities(size);
         }
         
@@ -31,18 +31,18 @@ namespace EnchantedForest.Environment
         {
             for (var i = 0; i < size; i++)
             {
-                Rooms.Add(Entity.Nothing);
+                Cells.Add(Entity.Nothing);
             }
         }
         
         public Map(Map other)
         {
-            Rooms = new List<Entity>(other.Size);
+            Cells = new List<Entity>(other.Size);
             lock (other._lock)
             {
-                foreach (var room in other.Rooms)
+                foreach (var room in other.Cells)
                 {
-                    Rooms.Add(room);
+                    Cells.Add(room);
                 }
 
                 AgentPos = other.AgentPos;
@@ -55,13 +55,13 @@ namespace EnchantedForest.Environment
         {
             lock (_lock)
             {
-                if (Rooms[pos].Equals(Entity.Nothing))
+                if (Cells[pos].Equals(Entity.Nothing))
                 {
-                    Rooms[pos] = flag;
+                    Cells[pos] = flag;
                 }
                 else
                 {
-                    Rooms[pos] |= flag;    
+                    Cells[pos] |= flag;    
                 }
 
                 
@@ -74,14 +74,14 @@ namespace EnchantedForest.Environment
             {
                 if (ContainsEntityAtPos(flag,pos))
                 {
-                    Rooms[pos] &= ~flag;
+                    Cells[pos] &= ~flag;
                 }
             }
         }
 
         public bool ContainsEntityAtPos(Entity flag, int pos)
         {
-            return Rooms[pos].HasFlag(flag);
+            return Cells[pos].HasFlag(flag);
         }
 
         public void MoveAgentTo(int pos)
@@ -98,7 +98,7 @@ namespace EnchantedForest.Environment
         {
             lock (_lock)
             {
-                return Rooms[pos];    
+                return Cells[pos];    
             }
         }
 

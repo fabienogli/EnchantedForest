@@ -164,5 +164,10 @@ namespace EnchantedForest.Environment
             var entityAsset = entityToPose.Equals(Entity.Monster) ? Entity.Poop : Entity.Cloud;
             Map.AddEntityAtPos(entityAsset, pos);
         }
+
+        public Entity ObserveCell()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

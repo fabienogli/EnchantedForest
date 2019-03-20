@@ -1,7 +1,9 @@
+using EnchantedForest.Environment;
+
 namespace EnchantedForest.Agent
 {
-    public class Sensor
+    public interface Sensor<T>
     {
-        
+        T Observe(Forest forest);
     }
 }
