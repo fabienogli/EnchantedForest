@@ -35,36 +35,7 @@ namespace EnchantedForest.Environment
             sb.Append(obj.HasFlag(Entity.Poop) ? "c" : " ");
             sb.Append(obj.HasFlag(Entity.Cloud) ? "w" : " ");
             
-            
-
             return sb.ToString();
-
-            switch (obj)
-            {
-                case Entity.Nothing:
-                    return "----";
-                case Entity.Agent:
-                    return "x";
-                case Entity.Monster:
-                    return "m";
-                case Entity.Poop:
-                    return "c";
-                case Entity.Pit:
-                    return "p";
-                case Entity.Cloud:
-                    return "w";
-                case Entity.Portal:
-                    return "0";
-                case Entity.Cloud | Entity.Poop:
-                    return "b";
-                default:
-                    return "-";
-            }
-        }
-
-        public static string AddCharIfContains(Entity obj, Entity entity, string character)
-        {
-            return obj.HasFlag(entity) ? character : " ";
         }
     }
 }
