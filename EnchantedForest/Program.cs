@@ -16,7 +16,7 @@ namespace EnchantedForest
         {
             var forest = new Forest(3 * 3);
             var viewer = new Viewer(true);
-            // var agent = new VacuumAgent(mansion, informed);
+            var agent = new Agent.Agent(forest);
             viewer.Subscribe(forest);
 
             ThreadStart viewStarter = viewer.Run;
@@ -27,9 +27,9 @@ namespace EnchantedForest
             var envThread = new Thread(envStarter);
             envThread.Start();
 
-            //ThreadStart agentStarter = agent.Run;
-            //var agentThread = new Thread(agentStarter);
-            //agentThread.Start();
+            ThreadStart agentStarter = agent.Run;
+            var agentThread = new Thread(agentStarter);
+            agentThread.Start();
         }
     }
 }

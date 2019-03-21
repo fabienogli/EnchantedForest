@@ -14,13 +14,15 @@ namespace EnchantedForest.Environment
         private int CurrentSize { get; set; }
 
         public Map Map { get; set; }
+
+        private Map Memory { get; set; }
         public int Fitness { get; set; }
 
         public Forest(int size)
         {
             //Only once initialization to get uniform result
             //Seeding to reproduce outcomes easily
-            Rand = new Random();
+            Rand = new Random(1);
 
             Running = true;
 
@@ -100,45 +102,28 @@ namespace EnchantedForest.Environment
 
                 Map.AddEntityAtPos(entity, i);
 
-                try
+                var up = Map.GetUpFrom(i);
+                if (up >= 0)
                 {
-                    var up = Map.GetUpFrom(i);
-                    AddEntityAssets(entity, up);
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    //
+                    AddEntityAssets(entity, up);    
                 }
 
-                try
+                var down = Map.GetDownFrom(i);
+                if (down >= 0)
                 {
-                    var down = Map.GetDownFrom(i);
                     AddEntityAssets(entity, down);
                 }
-                catch (IndexOutOfRangeException)
-                {
-                    //
-                }
 
-                try
+                var left = Map.GetLeftFrom(i);
+                if (left >= 0)
                 {
-                    var left = Map.GetLeftFrom(i);
                     AddEntityAssets(entity, left);
                 }
-                catch (IndexOutOfRangeException)
-                {
-                    //
-                }
 
-
-                try
+                var right = Map.GetRightFrom(i);
+                if (right >= 0)
                 {
-                    var right = Map.GetRightFrom(i);
                     AddEntityAssets(entity, right);
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    //
                 }
             }
         }
@@ -186,42 +171,43 @@ namespace EnchantedForest.Environment
                     return;
             }
 
+            Console.WriteLine(action);
             Map.ApplyAction(action);
+            Notify();
         }
 
         public void HandleThrow(Action action)
         {
-            try
+            int shoutedPos;
+            switch (action)
             {
-                int shoutedPos;
-                switch (action)
-                {
-                    case Action.ThrowUp:
-                        shoutedPos = Map.GetUpFrom(Map.AgentPos);
-                        break;
-                    case Action.ThrowDown:
-                        shoutedPos = Map.GetUpFrom(Map.AgentPos);
-                        break;
-                    case Action.ThrowRight:
-                        shoutedPos = Map.GetRightFrom(Map.AgentPos);
-                        break;
-                    case Action.ThrowLeft:
-                        shoutedPos = Map.GetLeftFrom(Map.AgentPos);
-                        break;
-                    default:
-                        return;
-                }
+                case Action.ThrowUp:
+                    shoutedPos = Map.GetUpFrom(Map.AgentPos);
+                    break;
+                case Action.ThrowDown:
+                    shoutedPos = Map.GetUpFrom(Map.AgentPos);
+                    break;
+                case Action.ThrowRight:
+                    shoutedPos = Map.GetRightFrom(Map.AgentPos);
+                    break;
+                case Action.ThrowLeft:
+                    shoutedPos = Map.GetLeftFrom(Map.AgentPos);
+                    break;
+                default:
+                    return;
+            }
 
-                RippleEffect(shoutedPos);
-            }
-            catch (IndexOutOfRangeException)
+            if (shoutedPos >= 0)
             {
+                RippleEffect(shoutedPos);    
             }
+            Notify();
         }
 
         private void RippleEffect(int shoutedPos)
         {
             //Remove monster (we shot it)  
+            Memory = new Map(Map);
             Map.RemoveEntityAtPos(Entity.Monster, shoutedPos);
             
             foreach (var cell in Map.GetSurroundingCells(shoutedPos))
@@ -232,6 +218,11 @@ namespace EnchantedForest.Environment
             }
 
     }
+
+        public void RollBackRipple()
+        {
+            Map = Memory;
+        }
 
         private void SanityCheck(int pos)
         {
