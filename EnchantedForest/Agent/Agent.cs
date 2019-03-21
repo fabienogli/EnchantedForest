@@ -321,24 +321,29 @@ namespace EnchantedForest.Agent
             }
         }
 
-        private bool ShortestPath(Queue<int> cell, HashSet<int> explored, int current, int end)
+        private bool ShortestPath(Queue<int> cells, ISet<int> explored, int current, int end)
         {
             explored.Add(current);
-            if (Environment.Map.GetUpFrom(current) == end || Environment.Map.GetDownFrom(current) == end ||
-                Environment.Map.GetLeftFrom(current) == end || Environment.Map.GetRightFrom(current) == end)
+            var surroundings = Environment.Map.GetSurroundingCells(current).ToList();
+            
+            if (surroundings.Contains(end))
             {
-                cell.Enqueue(current);
+                cells.Enqueue(current);
+                explored.Remove(current);
                 return true;
             }
 
-            var children = Environment.Map.GetSurroundingCells(MyPos)
-                .Where(tile => AlreadyVisited.Contains(tile) && !explored.Contains(tile));
+            var children = surroundings.Where(cell => AlreadyVisited.Contains(cell) && !explored.Contains(cell));
 
-            if (!children.Any(child => ShortestPath(cell, explored, child, end)))
-                return false;
+            if (children.Select(child => ShortestPath(cells, explored, child, end)).Any(path => path))
+            {
+                cells.Enqueue(current);
+                explored.Remove(current);
+                return true;
+            }
 
-            cell.Enqueue(current);
-            return true;
+            explored.Remove(current);
+            return false;
         }
 
         private Action MoveToward(int src, int dest)

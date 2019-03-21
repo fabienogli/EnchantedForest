@@ -18,7 +18,7 @@ namespace EnchantedForest.Environment
         {
             //Only once initialization to get uniform result
             //Seeding to reproduce outcomes easily
-            Rand = new Random(5);
+            Rand = new Random();
 
             Running = true;
 
