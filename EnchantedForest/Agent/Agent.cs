@@ -196,8 +196,11 @@ namespace EnchantedForest.Agent
                 UpdateMonster(MyPos, 1);
             }
 
+            // todo Irindul March 21, 2019 : Add others proba
+            // todo Irindul March 21, 2019 : Check what other tiles are affected when changing a proba
+
             //Si y a rien d'autres
-            //On met la proba de monstre à 0
+            //On met la proba de monstre/crevasse à 0
         }
 
         private void PlanIntents(Entity observe)
@@ -229,7 +232,7 @@ namespace EnchantedForest.Agent
             AlreadyVisited.Add(MyPos);
 
             var intentOfBest = new Queue<Action>();
-            var surroundings = Environment.Map.GetSurroundingCells(MyPos);
+            var surroundings = Environment.Map.GetSurroundingCells(MyPos).ToList();
 
             foreach (var cellAvailable in Available)
             {
