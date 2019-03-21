@@ -1,6 +1,6 @@
 using EnchantedForest.Environment;
 
-namespace EnchantedForest.Agent
+namespace EnchantedForest.Agent.Effectors
 {
     public class LeaveEffector : Effector
     {
@@ -10,8 +10,7 @@ namespace EnchantedForest.Agent
 
         public override bool DoIt()
         {
-            Forest.HandleAction(Action.Leave);
-            return true;
+            return Forest.HandleAction(Action.Leave);
         }
     }
 }

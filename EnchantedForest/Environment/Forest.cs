@@ -10,11 +10,7 @@ namespace EnchantedForest.Environment
         private IObserver<Forest> Observer { get; set; }
         private bool Running { get; }
         private Random Rand { get; }
-
-        private int CurrentSize { get; set; }
-
         public Map Map { get; set; }
-
         private Map Memory { get; set; }
         public int Fitness { get; set; }
 
@@ -22,7 +18,7 @@ namespace EnchantedForest.Environment
         {
             //Only once initialization to get uniform result
             //Seeding to reproduce outcomes easily
-            Rand = new Random(1);
+            Rand = new Random(5);
 
             Running = true;
 
@@ -34,6 +30,8 @@ namespace EnchantedForest.Environment
             Running = forest.Running;
             Map = new Map(forest.Map);
             Fitness = forest.Fitness;
+            Observer = forest.Observer;
+            Memory = forest.Memory;
         }
 
         private void InitMap(int size)
@@ -68,9 +66,10 @@ namespace EnchantedForest.Environment
 
         private void NextLevel()
         {
-            var currentSize = Map.SquaredSize;
-            Map = new Map(currentSize + 1);
+            var newSquaredSize = Map.SquaredSize + 1;
+            Map = new Map(newSquaredSize * newSquaredSize);
             GenerateLevel();
+            
         }
 
         private void GenerateLevel()
@@ -158,22 +157,34 @@ namespace EnchantedForest.Environment
             return Map.GetEntityAt(Map.AgentPos);
         }
 
-        public void HandleAction(Action action)
+        public bool HandleAction(Action action)
         {
+            Console.Write(action + "/") ;
             switch (action)
             {
                 case Action.Leave:
+                    Console.WriteLine();
                     if (Map.ContainsEntityAtPos(Entity.Portal, Map.AgentPos))
                     {
                         NextLevel();
+                        Notify();
+                        return true;
                     }
-
-                    return;
+                    return false;
+                case Action.ThrowUp:
+                case Action.ThrowDown:
+                case Action.ThrowLeft:
+                case Action.ThrowRight:
+                    HandleThrow(action);
+                    Notify();
+                    return true;
+                    
             }
-
-            Console.WriteLine(action);
+            
             Map.ApplyAction(action);
+            Console.WriteLine("new pos =" + Map.AgentPos);
             Notify();
+            return true;
         }
 
         public void HandleThrow(Action action)
@@ -185,7 +196,7 @@ namespace EnchantedForest.Environment
                     shoutedPos = Map.GetUpFrom(Map.AgentPos);
                     break;
                 case Action.ThrowDown:
-                    shoutedPos = Map.GetUpFrom(Map.AgentPos);
+                    shoutedPos = Map.GetDownFrom(Map.AgentPos);
                     break;
                 case Action.ThrowRight:
                     shoutedPos = Map.GetRightFrom(Map.AgentPos);
@@ -201,7 +212,6 @@ namespace EnchantedForest.Environment
             {
                 RippleEffect(shoutedPos);    
             }
-            Notify();
         }
 
         private void RippleEffect(int shoutedPos)
@@ -221,7 +231,12 @@ namespace EnchantedForest.Environment
 
         public void RollBackRipple()
         {
+            if (Memory == null) 
+                return;
+            
+            
             Map = Memory;
+            Memory = null;
         }
 
         private void SanityCheck(int pos)

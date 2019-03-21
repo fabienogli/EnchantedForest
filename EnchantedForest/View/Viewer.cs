@@ -48,11 +48,14 @@ namespace EnchantedForest.View
                 return;
             }
 
-            Console.Clear();
-            GetNextEpoch();
-            RenderLegend();
-            RenderMap();
-            RenderPerf();
+             
+            if (GetNextEpoch())
+            {
+                Console.Clear();
+                RenderLegend();
+                RenderMap();
+                RenderPerf();
+            }
         }
 
         private void RenderPerf()
@@ -60,12 +63,15 @@ namespace EnchantedForest.View
             Console.WriteLine("Fitness : " + currentEpoch.Fitness);
         }
 
-        private void GetNextEpoch()
+        private bool GetNextEpoch()
         {
             if (epochs.Count > 0)
             {
                 currentEpoch = epochs.Dequeue();
+                return true;
             }
+
+            return false;
         }
 
         private void RenderLegend()

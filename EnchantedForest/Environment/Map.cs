@@ -119,7 +119,7 @@ namespace EnchantedForest.Environment
                 case Action.Left:
                     if (newPos % SquaredSize == 0)
                     {
-                        throw new IndexOutOfRangeException();
+                        throw new IndexOutOfRangeException("Cannot go left");
                     }
                     newPos--;
                     
@@ -128,7 +128,7 @@ namespace EnchantedForest.Environment
                     
                     if (newPos % SquaredSize == SquaredSize-1)
                     {
-                        throw new IndexOutOfRangeException();
+                        throw new IndexOutOfRangeException("Cannot go right");
                     }
                     newPos++;
                     break;
@@ -138,7 +138,9 @@ namespace EnchantedForest.Environment
 
             if (newPos < 0 || newPos >= Size)
             {
-                throw new IndexOutOfRangeException();
+                Console.WriteLine("Index out of bounds");
+                return;
+                //throw new IndexOutOfRangeException("Its out of bound");
             }
 
             MoveAgentTo(newPos);

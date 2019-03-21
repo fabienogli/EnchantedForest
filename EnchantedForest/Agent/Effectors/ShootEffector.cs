@@ -12,7 +12,7 @@ namespace EnchantedForest.Agent.Effectors
 
         public override bool DoIt()
         {
-            Forest.HandleThrow(ShootingAction);
+            Forest.HandleAction(ShootingAction);
             return true;
         }
     }

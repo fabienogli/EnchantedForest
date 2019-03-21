@@ -14,11 +14,11 @@ namespace EnchantedForest.Agent
     public class Agent
     {
         private CellSensor CellSensor;
-        private List<int> Available;
+        private HashSet<int> Available;
 
         private Dictionary<Action, Effector> Effectors { get; }
         private Dictionary<int, Dictionary<Entity, double>> Probs;
-        private HashSet<int> AlreadyVisited { get; }
+        private HashSet<int> AlreadyVisited { get; set; }
 
         private Forest Environment { get; }
 
@@ -36,12 +36,18 @@ namespace EnchantedForest.Agent
         {
             Environment = environment;
             CellSensor = new CellSensor();
-            Intents = new Queue<Action>();
-            ActionDone = 0;
             EffectorFactory.Forest = environment;
             Effectors = EffectorFactory.GetEffectors();
             AlreadyVisited = new HashSet<int>();
-            Available = new List<int>();
+            ResetAgent();
+        }
+
+        private void ResetAgent()
+        {
+            Intents = new Queue<Action>();
+            ActionDone = 0;
+            Available = new HashSet<int>();
+            AlreadyVisited = new HashSet<int>();
             Probs = new Dictionary<int, Dictionary<Entity, double>>();
             for (int i = 0; i < Environment.Map.Size; i++)
             {
@@ -102,7 +108,7 @@ namespace EnchantedForest.Agent
 
                 Step();
 
-                Thread.Sleep(200);
+                Thread.Sleep(900);
             }
         }
 
@@ -123,17 +129,28 @@ namespace EnchantedForest.Agent
             if (Intents.Any())
             {
                 var intent = Intents.Dequeue();
+
                 var effector = Effectors[intent];
-                effector.DoIt();
+                var done = effector.DoIt();
+
+                if (intent.Equals(Action.Leave) && done)
+                {
+                    ResetAgent();
+                }
             }
             else
             {
-                PlanIntents();
+                PlanIntents(observe);
             }
         }
 
         private void Infere(Entity observe)
         {
+            if (AlreadyVisited.Contains(MyPos))
+            {
+                return;
+            }
+
             var surroundings = Environment.Map.GetSurroundingCells(MyPos)
                 .Where(cell => !AlreadyVisited.Contains(cell))
                 .ToList();
@@ -183,16 +200,22 @@ namespace EnchantedForest.Agent
             //On met la proba de monstre à 0
         }
 
-        private void PlanIntents()
+        private void PlanIntents(Entity observe)
         {
-            var treshold = 0.56;
-            double max_win = -1;
-            var max_i = 0;
-            var action = Action.Idle;
+            if (observe.HasFlag(Entity.Portal))
+            {
+                Intents = new Queue<Action>();
+                Intents.Enqueue(Action.Leave);
+                return;
+            }
+
+            var treshold = 5;
+            double maxWin = -1;
+            var maxI = 0;
             var throwed = false;
 
             Memory = new List<Tuple<int, double>>();
-            var theoretical = MyPos;
+            var theoreticalOfBest = MyPos;
 
             var surroundingsNotVisited = Environment.Map.GetSurroundingCells(MyPos)
                 .Where(cell => !AlreadyVisited.Contains(cell));
@@ -205,56 +228,61 @@ namespace EnchantedForest.Agent
             Available.Remove(MyPos);
             AlreadyVisited.Add(MyPos);
 
+            var intentOfBest = new Queue<Action>();
+            var surroundings = Environment.Map.GetSurroundingCells(MyPos);
+
             foreach (var cellAvailable in Available)
             {
-                var surroundings = Environment.Map.GetSurroundingCells(MyPos);
+                var theoretical = MyPos;
+                
                 var mem = new Queue<Action>();
-                foreach (var intent in Intents)
-                {
-                    mem.Enqueue(intent);
-                }
+
 
                 if (!surroundings.Contains(cellAvailable))
                 {
-                    // fixme Irindul March 20, 2019 : Bug here
-                    //Whene we add to the intents we will rollback 
-                    //Only if are not the best *so far* 
-                    //Not if we are the best *total* /!\ 
-                    //Causes theoreticalPos to be outDated and Intents filled with actions not executed
+                    foreach (var intent in Intents)
+                    {
+                        mem.Enqueue(intent);
+                    }
+
                     ShortestPath(cellAvailable);
-                    theoretical = cellAvailable;
+                    theoretical = ComputeTheoretical();
                 }
 
                 if (Probs[cellAvailable][Entity.Monster] > treshold)
                 {
+                    // todo Irindul March 21, 2019 : check if working properly !
                     ThrowRock(theoretical, cellAvailable);
                     throwed = true;
                 }
 
-                if (!(Probs[cellAvailable][Entity.Portal] > max_win))
+                if (!(Probs[cellAvailable][Entity.Portal] > maxWin))
                 {
                     RollbackThrow();
                     Intents = mem;
-                    theoretical = MyPos;
                     throwed = false;
                     continue;
                 }
 
-                max_win = Probs[cellAvailable][Entity.Portal];
-                max_i = cellAvailable;
+                maxWin = Probs[cellAvailable][Entity.Portal];
+                maxI = cellAvailable;
+                intentOfBest = Intents;
+                theoreticalOfBest = theoretical;
+                Intents = new Queue<Action>();
             }
 
+            Intents = intentOfBest;
             if (throwed)
             {
-                Intents.Enqueue(GetThrowed(theoretical, max_i));
+                Intents.Enqueue(GetThrowed(theoreticalOfBest, maxI));
             }
 
-            Intents.Enqueue(MoveToward(theoretical, max_i));
+            Intents.Enqueue(MoveToward(theoreticalOfBest, maxI));
         }
 
-        private int ComputeTheoretical(int myPos)
+        private int ComputeTheoretical()
         {
-            var theoretical = myPos;
+            var theoretical = MyPos;
             foreach (var intent in Intents)
             {
                 switch (intent)
@@ -364,6 +392,7 @@ namespace EnchantedForest.Agent
 
         private void RollbackThrow()
         {
+            Environment.RollBackRipple();
             foreach (var (key, oldValue) in Memory)
             {
                 Probs[key][Entity.Monster] = oldValue;
