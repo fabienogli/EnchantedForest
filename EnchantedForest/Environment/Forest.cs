@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Action = EnchantedForest.Agent.Action;
 
 namespace EnchantedForest.Environment
 {
@@ -9,10 +10,8 @@ namespace EnchantedForest.Environment
         private IObserver<Forest> Observer { get; set; }
         private bool Running { get; }
         private Random Rand { get; }
-
-        private int CurrentSize { get; set; }
-
         public Map Map { get; set; }
+        private Map Memory { get; set; }
         public int Fitness { get; set; }
 
         public Forest(int size)
@@ -31,6 +30,8 @@ namespace EnchantedForest.Environment
             Running = forest.Running;
             Map = new Map(forest.Map);
             Fitness = forest.Fitness;
+            Observer = forest.Observer;
+            Memory = forest.Memory;
         }
 
         private void InitMap(int size)
@@ -65,9 +66,10 @@ namespace EnchantedForest.Environment
 
         private void NextLevel()
         {
-            var currentSize = Map.SquaredSize;
-            Map = new Map(currentSize + 1);
+            var newSquaredSize = Map.SquaredSize + 1;
+            Map = new Map(newSquaredSize * newSquaredSize);
             GenerateLevel();
+            
         }
 
         private void GenerateLevel()
@@ -87,7 +89,8 @@ namespace EnchantedForest.Environment
                 if (proba < 15)
                 {
                     entity = Entity.Monster;
-                } else if (proba >= 15 && proba < 30)
+                }
+                else if (proba >= 15 && proba < 30)
                 {
                     entity = Entity.Pit;
                 }
@@ -95,51 +98,35 @@ namespace EnchantedForest.Environment
                 {
                     continue;
                 }
-                
+
                 Map.AddEntityAtPos(entity, i);
 
-                try
+                var up = Map.GetUpFrom(i);
+                if (up >= 0)
                 {
-                    var up = Map.GetUpFrom(i);
-                    AddEntityAssets(entity, up);
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    //
+                    AddEntityAssets(entity, up);    
                 }
 
-                try
+                var down = Map.GetDownFrom(i);
+                if (down >= 0)
                 {
-                    var down = Map.GetDownFrom(i);
                     AddEntityAssets(entity, down);
                 }
-                catch (IndexOutOfRangeException)
-                {
-                    //
-                }
 
-                try
+                var left = Map.GetLeftFrom(i);
+                if (left >= 0)
                 {
-                    var left = Map.GetLeftFrom(i);
                     AddEntityAssets(entity, left);
                 }
-                catch (IndexOutOfRangeException)
-                {
-                    //
-                }
 
-
-                try
+                var right = Map.GetRightFrom(i);
+                if (right >= 0)
                 {
-                    var right = Map.GetRightFrom(i);
                     AddEntityAssets(entity, right);
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    //
                 }
             }
         }
+
         private void InitAgent()
         {
             var agentPos = Rand.Next(Map.Size);
@@ -167,7 +154,101 @@ namespace EnchantedForest.Environment
 
         public Entity ObserveCell()
         {
-            throw new NotImplementedException();
+            return Map.GetEntityAt(Map.AgentPos);
+        }
+
+        public bool HandleAction(Action action)
+        {
+            Console.Write(action + "/") ;
+            switch (action)
+            {
+                case Action.Leave:
+                    Console.WriteLine();
+                    if (Map.ContainsEntityAtPos(Entity.Portal, Map.AgentPos))
+                    {
+                        NextLevel();
+                        Notify();
+                        return true;
+                    }
+                    return false;
+                case Action.ThrowUp:
+                case Action.ThrowDown:
+                case Action.ThrowLeft:
+                case Action.ThrowRight:
+                    HandleThrow(action);
+                    Notify();
+                    return true;
+                    
+            }
+            
+            Map.ApplyAction(action);
+            Console.WriteLine("new pos =" + Map.AgentPos);
+            Notify();
+            return true;
+        }
+
+        public void HandleThrow(Action action)
+        {
+            int shoutedPos;
+            switch (action)
+            {
+                case Action.ThrowUp:
+                    shoutedPos = Map.GetUpFrom(Map.AgentPos);
+                    break;
+                case Action.ThrowDown:
+                    shoutedPos = Map.GetDownFrom(Map.AgentPos);
+                    break;
+                case Action.ThrowRight:
+                    shoutedPos = Map.GetRightFrom(Map.AgentPos);
+                    break;
+                case Action.ThrowLeft:
+                    shoutedPos = Map.GetLeftFrom(Map.AgentPos);
+                    break;
+                default:
+                    return;
+            }
+
+            if (shoutedPos >= 0)
+            {
+                RippleEffect(shoutedPos);    
+            }
+        }
+
+        private void RippleEffect(int shoutedPos)
+        {
+            //Remove monster (we shot it)  
+            Memory = new Map(Map);
+            Map.RemoveEntityAtPos(Entity.Monster, shoutedPos);
+            
+            foreach (var cell in Map.GetSurroundingCells(shoutedPos))
+            {
+                if (!Map.ContainsEntityAtPos(Entity.Poop, cell)) continue;
+                Map.RemoveEntityAtPos(Entity.Poop, cell);
+                SanityCheck(cell);
+            }
+
+    }
+
+        public void RollBackRipple()
+        {
+            if (Memory == null) 
+                return;
+            
+            
+            Map = Memory;
+            Memory = null;
+        }
+
+        private void SanityCheck(int pos)
+        {
+            foreach (var cell in Map.GetSurroundingCells(pos))
+            {
+                if (Map.ContainsEntityAtPos(Entity.Monster, cell))
+                {
+                    Map.AddEntityAtPos(Entity.Monster, pos);
+                }
+            }
         }
     }
+
 }

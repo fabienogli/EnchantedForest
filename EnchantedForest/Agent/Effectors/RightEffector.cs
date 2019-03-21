@@ -1,6 +1,6 @@
 using EnchantedForest.Environment;
 
-namespace EnchantedForest.Agent
+namespace EnchantedForest.Agent.Effectors
 {
     public class RightEffector : Effector
     {
@@ -10,7 +10,8 @@ namespace EnchantedForest.Agent
 
         public override bool DoIt()
         {
-            throw new System.NotImplementedException();
+            Forest.HandleAction(Action.Right);
+            return true;
         }
     }
 }

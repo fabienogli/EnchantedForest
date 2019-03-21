@@ -7,7 +7,10 @@ namespace EnchantedForest.Agent
         Right,
         Up,
         Down,
-        ThrowRock,
+        ThrowLeft,
+        ThrowRight,
+        ThrowUp,
+        ThrowDown,
         Leave,
     }
 }

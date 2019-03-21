@@ -119,7 +119,7 @@ namespace EnchantedForest.Environment
                 case Action.Left:
                     if (newPos % SquaredSize == 0)
                     {
-                        throw new IndexOutOfRangeException();
+                        throw new IndexOutOfRangeException("Cannot go left");
                     }
                     newPos--;
                     
@@ -128,7 +128,7 @@ namespace EnchantedForest.Environment
                     
                     if (newPos % SquaredSize == SquaredSize-1)
                     {
-                        throw new IndexOutOfRangeException();
+                        throw new IndexOutOfRangeException("Cannot go right");
                     }
                     newPos++;
                     break;
@@ -138,55 +138,86 @@ namespace EnchantedForest.Environment
 
             if (newPos < 0 || newPos >= Size)
             {
-                throw new IndexOutOfRangeException();
+                Console.WriteLine("Index out of bounds");
+                return;
+                //throw new IndexOutOfRangeException("Its out of bound");
             }
 
             MoveAgentTo(newPos);
             AgentPos = newPos;
         }
 
+        public IEnumerable<int> GetSurroundingCells(int pos)
+        {
+            var surrounding = new List<int>();
+
+            var up = GetUpFrom(pos);
+            if (up >= 0)
+            {
+                surrounding.Add(up);
+            }
+
+            var down = GetDownFrom(pos);
+            if (down >= 0)
+            {
+                surrounding.Add(down);
+            }
+
+            var left = GetLeftFrom(pos);
+            if (left >= 0)
+            {
+                surrounding.Add(left);
+            }
+
+            var right = GetRightFrom(pos);
+            if (right >= 0)
+            {
+                surrounding.Add(right);
+            }
+
+            return surrounding;
+        } 
+
         public int GetUpFrom(int pos)
         {
             var newPos = pos - SquaredSize;
-            CheckBoundaries(newPos);
-            return newPos;
+            return CheckBoundaries(newPos);
         }
 
         public int GetDownFrom(int pos)
         {
             var newPos = pos + SquaredSize;
-            CheckBoundaries(newPos);
-            return newPos;
+            return CheckBoundaries(newPos);
         }
 
         public int GetLeftFrom(int pos)
         {
             if (pos % SquaredSize == 0)
             {
-                throw new IndexOutOfRangeException();
+                return -1;
             }
             var newPos = pos - 1;
-            CheckBoundaries(newPos);
-            return newPos;
+            return CheckBoundaries(newPos);
         }
 
         public int GetRightFrom(int pos)
         {
             if (pos % SquaredSize == SquaredSize-1)
             {
-                throw new IndexOutOfRangeException();
+                return -1;
             }
             var newPos = pos + 1;
-            CheckBoundaries(newPos);
-            return newPos;
+            return CheckBoundaries(newPos);
         }
 
-        private void CheckBoundaries(int pos)
+        private int CheckBoundaries(int pos)
         {
             if (pos < 0 || pos >= Size)
             {
-                throw new IndexOutOfRangeException();
+                return -1;
             }
+
+            return pos;
         }
 
 
