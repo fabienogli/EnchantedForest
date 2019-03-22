@@ -48,14 +48,13 @@ namespace EnchantedForest.View
                 return;
             }
 
-             
-            if (GetNextEpoch())
-            {
-                Console.Clear();
-                RenderLegend();
-                RenderMap();
-                RenderPerf();
-            }
+            if (!GetNextEpoch()) 
+                return;
+            
+            Console.Clear();
+            RenderLegend();
+            RenderMap();
+            RenderPerf();
         }
 
         private void RenderPerf()
@@ -65,28 +64,24 @@ namespace EnchantedForest.View
 
         private bool GetNextEpoch()
         {
-            if (epochs.Count > 0)
-            {
-                currentEpoch = epochs.Dequeue();
-                return true;
-            }
-
-            return false;
+            if (epochs.Count <= 0) 
+                return false;
+            
+            currentEpoch = epochs.Dequeue();
+            return true;
         }
 
-        private void RenderLegend()
+        private static void RenderLegend()
         {
-            string empty = EntityStringer.ObjectToString(Entity.Nothing).Trim();
-            string agent = EntityStringer.ObjectToString(Entity.Agent).Trim();
-            string monster = EntityStringer.ObjectToString(Entity.Monster).Trim();
-            string poop = EntityStringer.ObjectToString(Entity.Poop).Trim();
-            string cloud = EntityStringer.ObjectToString(Entity.Cloud).Trim();
-            string portal = EntityStringer.ObjectToString(Entity.Portal).Trim();
-            string pit = EntityStringer.ObjectToString(Entity.Pit).Trim();
+            var empty = EntityStringer.ObjectToString(Entity.Nothing).Trim();
+            var agent = EntityStringer.ObjectToString(Entity.Agent).Trim();
+            var monster = EntityStringer.ObjectToString(Entity.Monster).Trim();
+            var poop = EntityStringer.ObjectToString(Entity.Poop).Trim();
+            var cloud = EntityStringer.ObjectToString(Entity.Cloud).Trim();
+            var portal = EntityStringer.ObjectToString(Entity.Portal).Trim();
+            var pit = EntityStringer.ObjectToString(Entity.Pit).Trim();
 
-            //todo add "Monster & agent etc"
-
-            string legend =
+            var legend =
                 $"{empty}=empty {agent}=agent {portal}=portal {monster}=monster {poop}=poop {cloud}=cloud {pit}=pit";
             Console.WriteLine(legend);
         }
@@ -94,14 +89,14 @@ namespace EnchantedForest.View
         private void RenderMap()
         {
             //Assuming the map is squared
-            int size = (int) Math.Sqrt(currentEpoch.Map.Size);
-            StringBuilder sb = new StringBuilder();
-            for (int col = 0; col < size; col++)
+            var size = (int) Math.Sqrt(currentEpoch.Map.Size);
+            var sb = new StringBuilder();
+            for (var col = 0; col < size; col++)
             {
-                for (int row = 0; row < size; row++)
+                for (var row = 0; row < size; row++)
                 {
-                    Entity obj = currentEpoch.Map.GetEntityAt(Convert2DTo1D(row, col));
-                    string objectString = EntityStringer.ObjectToString(obj);
+                    var obj = currentEpoch.Map.GetEntityAt(Convert2DTo1D(row, col));
+                    var objectString = EntityStringer.ObjectToString(obj);
                     if (row == 0)
                     {
                         sb.Append("| ");

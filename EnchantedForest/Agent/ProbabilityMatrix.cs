@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using EnchantedForest.Environment;
 
 namespace EnchantedForest.Agent
@@ -40,6 +41,23 @@ namespace EnchantedForest.Agent
         public double GetProbaFor(int cell, Entity entity)
         {
             return Probabilities[cell][entity];
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var (key, probabilityDict) in Probabilities)
+            {
+                sb.Append($"probas[{key}] : ");
+                foreach (var (entity, proba) in probabilityDict)
+                {
+                    sb.Append($"[{entity}]={proba}");
+                }
+
+                sb.Append("\n");
+            }
+
+            return sb.ToString();
         }
     }
 }

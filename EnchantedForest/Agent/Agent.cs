@@ -16,7 +16,7 @@ namespace EnchantedForest.Agent
         private HashSet<int> AlreadyVisited { get; set; }
         private Queue<Action> Intents { get; set; }
         private ProbabilityMatrix Proba { get; set; }
-        private IInferer Inferer { get; set; }
+        private GraphInferer Inferer { get; set; }
         private int MyPos => Environment.Map.AgentPos;
         private IEnumerable<int> Surrounding => Environment.Map.GetSurroundingCells(MyPos);
 
@@ -65,7 +65,7 @@ namespace EnchantedForest.Agent
 //            Performance = PerformanceSensor.Observe(Environment);
             var observe = CellSensor.Observe(Environment);
 
-            Inferer.Infere(observe);
+            Infere(observe);
 
             if (Intents.Any())
             {
@@ -75,6 +75,12 @@ namespace EnchantedForest.Agent
             {
                 PlanIntents(observe);
             }
+        }
+
+        private void Infere(Entity observe)
+        {
+            Inferer.MyPos = MyPos;
+            Proba = Inferer.Infere(observe);
         }
 
         private void DealWithIntent()
@@ -120,7 +126,7 @@ namespace EnchantedForest.Agent
                 if (!isBestSoFar)
                     continue;
 
-                maxWin = Proba.GetProbaFor(cellAvailable, Entity.Portal);
+                maxWin = PortalOutcome(cellAvailable);
                 maxCell = cellAvailable;
                 intentsOfBest = Intents;
                 theoreticalOfBest = ComputeTheoretical();

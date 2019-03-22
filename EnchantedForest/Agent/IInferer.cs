@@ -4,6 +4,6 @@ namespace EnchantedForest.Agent
 {
     public interface IInferer
     {
-        void Infere(Entity observe);
+        ProbabilityMatrix Infere(Entity observe);
     }
 }

@@ -24,11 +24,11 @@ namespace EnchantedForest.Agent
             Graph = new Graph();
         }
 
-        public void Infere(Entity observe)
+        public ProbabilityMatrix Infere(Entity observe)
         {
             if (AlreadyVisited.Contains(MyPos))
             {
-                return;
+                return Proba;
             }
 
             AlreadyVisited.Add(MyPos);
@@ -45,6 +45,7 @@ namespace EnchantedForest.Agent
             Graph.AddCluster(surrounding);
             PropagateInfoToNewNodes(observe, surrounding);
             Graph.RemoveNode(MyPos);
+            return Proba;
         }
         
         private void UpdateSelf(Entity observe)
@@ -62,17 +63,29 @@ namespace EnchantedForest.Agent
             }
         }
         
-        private void PropagateInfoToNewNodes(Entity entity, HashSet<int> surrounding)
+        private void PropagateInfoToNewNodes(Entity observe, HashSet<int> surrounding)
         {
-            if (entity.HasFlag(Entity.Poop))
+
+            var hasPoop = observe.HasFlag(Entity.Poop);
+            var hasCloud = observe.HasFlag(Entity.Cloud);
+            var hasNothing = !hasPoop && !hasCloud;
+
+            if (hasPoop)
             {
                 Forward(Entity.Monster, 1, new HashSet<int>(), surrounding);
             }
 
-            if (entity.HasFlag(Entity.Cloud))
+            if (hasCloud)
             {
                 Forward(Entity.Pit, 1, new HashSet<int>(), surrounding);
             }
+
+            if (hasNothing)
+            {
+                Forward(Entity.Monster, 0, new HashSet<int>(), surrounding);
+                Forward(Entity.Pit, 0, new HashSet<int>(), surrounding);
+            }
+            
         }
         
         private void Forward(Entity entity, int value, HashSet<int> alreadyVisited, HashSet<int> cluster)
