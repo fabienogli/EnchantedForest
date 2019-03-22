@@ -220,6 +220,66 @@ namespace EnchantedForest.Environment
             return pos;
         }
 
+        public Action MoveToward(int src, int dest)
+        {
+            var up = GetUpFrom(src);
+            var down = GetDownFrom(src);
+            var left = GetLeftFrom(src);
+            var right = GetRightFrom(src);
+
+            if (up == dest)
+            {
+                return Action.Up;
+            }
+
+            if (down == dest)
+            {
+                return Action.Down;
+            }
+
+            if (left == dest)
+            {
+                return Action.Left;
+            }
+
+            if (right == dest)
+            {
+                return Action.Right;
+            }
+
+            throw new InvalidDataException($"Cannot move to tiles that are not adjacent src={src} dest={dest}");
+        }
+
+        public Action GetThrowed(int src, int dest)
+        {
+            var up = GetUpFrom(src);
+            var down = GetDownFrom(src);
+            var left = GetLeftFrom(src);
+            var right = GetRightFrom(src);
+
+            if (up == dest)
+            {
+                return Action.ThrowUp;
+            }
+
+            if (down == dest)
+            {
+                return Action.ThrowDown;
+            }
+
+            if (left == dest)
+            {
+                return Action.ThrowLeft;
+            }
+
+            if (right == dest)
+            {
+                return Action.Right;
+            }
+            
+            throw new InvalidDataException($"Cannot throw from tiles that are not adjacent, src={src} dest={dest}" );
+        }
+
 
         public override string ToString()
         {

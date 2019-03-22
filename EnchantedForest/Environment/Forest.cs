@@ -5,7 +5,7 @@ using Action = EnchantedForest.Agent.Action;
 
 namespace EnchantedForest.Environment
 {
-    public class Forest : IObservable<Forest>
+    public class Forest : IObservable<Forest>, IEnvironment
     {
         private IObserver<Forest> Observer { get; set; }
         private bool Running { get; }
@@ -18,7 +18,7 @@ namespace EnchantedForest.Environment
         {
             //Only once initialization to get uniform result
             //Seeding to reproduce outcomes easily
-            Rand = new Random();
+            Rand = new Random(1);
 
             Running = true;
 
@@ -247,6 +247,27 @@ namespace EnchantedForest.Environment
                 {
                     Map.AddEntityAtPos(Entity.Monster, pos);
                 }
+            }
+        }
+
+        public int GetCostForAction(Action action)
+        {
+            switch (action)
+            {
+                case Action.Idle:
+                    return 0;
+                case Action.Left:
+                case Action.Right:
+                case Action.Up:
+                case Action.Down:
+                    return 1;
+                case Action.ThrowLeft:
+                case Action.ThrowRight:
+                case Action.ThrowUp:
+                case Action.ThrowDown:
+                    return 10;    
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
         }
     }
