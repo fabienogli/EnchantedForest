@@ -92,6 +92,7 @@ namespace EnchantedForest.Environment
             {
                 RemoveEntityAtPos(agent, AgentPos);
                 AddEntityAtPos(agent, pos);    
+                AgentPos = pos;
             }
         }
 
@@ -144,7 +145,6 @@ namespace EnchantedForest.Environment
             }
 
             MoveAgentTo(newPos);
-            AgentPos = newPos;
         }
 
         public IEnumerable<int> GetSurroundingCells(int pos)

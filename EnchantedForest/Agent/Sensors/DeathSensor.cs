@@ -6,7 +6,7 @@ namespace EnchantedForest.Agent.Effectors
     {
         public bool Observe(Forest forest)
         {
-            return forest.IsAgentDead();
+            return forest.AgentDead;
         }
     }
 }
