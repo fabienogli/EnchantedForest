@@ -142,7 +142,7 @@ namespace EnchantedForest.Search
         {
             var h = Environment.GetHeuristicForState(current.State);
             var g = current.Cost;
-            return g + h;
+            return h;
         }
 
         public Tree.Node GetBestExplored()
