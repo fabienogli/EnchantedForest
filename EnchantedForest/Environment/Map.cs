@@ -220,7 +220,6 @@ namespace EnchantedForest.Environment
             return pos;
         }
 
-
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
