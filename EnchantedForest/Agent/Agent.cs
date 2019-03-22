@@ -32,6 +32,8 @@ namespace EnchantedForest.Agent
 
         private int MyPos => Environment.Map.AgentPos;
 
+        private Graph Graph { get; set; }
+
         public Agent(Forest environment)
         {
             Environment = environment;
@@ -44,6 +46,7 @@ namespace EnchantedForest.Agent
 
         private void ResetAgent()
         {
+            Graph = new Graph();
             Intents = new Queue<Action>();
             ActionDone = 0;
             Available = new HashSet<int>();
@@ -73,21 +76,9 @@ namespace EnchantedForest.Agent
             }
         }
 
-        public void UpdateMonster(int cell, double newProba)
+        private void UpdateEntity(Entity entity, int cell, double proba)
         {
-            Probs[cell][Entity.Monster] = newProba;
-            UpdatePortal(cell);
-        }
-
-        public void UpdatePit(int cell, double newProba)
-        {
-            Probs[cell][Entity.Pit] = newProba;
-            UpdatePortal(cell);
-        }
-
-        public void UpdateNothing(int cell, double newProba)
-        {
-            Probs[cell][Entity.Pit] = newProba;
+            Probs[cell][entity] = proba;
             UpdatePortal(cell);
         }
 
@@ -151,56 +142,86 @@ namespace EnchantedForest.Agent
                 return;
             }
 
-            var surroundings = Environment.Map.GetSurroundingCells(MyPos)
-                .Where(cell => !AlreadyVisited.Contains(cell))
-                .ToList();
-            var nbSurroundings = surroundings.Count;
+            AlreadyVisited.Add(MyPos);
 
-            if (observe.HasFlag(Entity.Cloud))
+            var surrounding = Environment.Map.GetSurroundingCells(MyPos).Where(child => !AlreadyVisited.Contains(child))
+                .ToHashSet();
+            foreach (var child in surrounding)
             {
-                foreach (var cell in surroundings)
+                Graph.AddEdge(MyPos, child);
+            }
+
+
+            Graph.Emancipate(MyPos);
+            UpdateSelf(observe);
+
+            Graph.AddCluster(surrounding);
+            PropagateInfoToNewNodes(observe, surrounding);
+            Graph.RemoveNode(MyPos);
+        }
+
+        
+        private void PropagateInfoToNewNodes(Entity entity, HashSet<int> surrounding)
+        {
+            if (entity.HasFlag(Entity.Poop))
+            {
+                Forward(Entity.Monster, 1, new HashSet<int>(), surrounding);
+            }
+
+            if (entity.HasFlag(Entity.Cloud))
+            {
+                Forward(Entity.Pit, 1, new HashSet<int>(), surrounding);
+            }
+        }
+        
+        private void UpdateSelf(Entity observe)
+        {
+            bool monster = observe.HasFlag(Entity.Monster);
+            bool pit = observe.HasFlag(Entity.Pit);
+            bool hasNothing = (!monster || !pit) && !observe.HasFlag(Entity.Portal);
+
+            UpdateEntity(Entity.Monster, MyPos, monster ? 1 : 0);
+            UpdateEntity(Entity.Pit, MyPos, pit ? 1 : 0);
+
+            if (hasNothing)
+            {
+               UpdateEntity(Entity.Nothing, MyPos, 1);
+            }
+        }
+
+        private void Forward(Entity entity, int value, HashSet<int> alreadyVisited, HashSet<int> cluster)
+        {
+            int sum = 0;
+            var cellCount = new Dictionary<int, int>();
+            foreach (var elem in cluster)
+            {
+                if (alreadyVisited.Contains(elem))
                 {
-                    var newProba = (double) 1 / nbSurroundings;
-                    UpdatePit(cell, Probs[cell][Entity.Pit] + newProba);
-                    if (Probs[cell][Entity.Pit] > 1)
-                    {
-                        UpdatePit(cell, 1);
-                        //throw new InvalidDataException("Proba is too high");
-                        // todo Irindul March 20, 2019 : Refactor into method   
-                    }
+                    continue;
+                }
+
+                int n = Graph.CountClusters(elem);
+                sum += n;
+                cellCount.Add(elem, n);
+            }
+
+            foreach (var elem in cluster)
+            {
+                if (alreadyVisited.Contains(elem))
+                {
+                    continue;
+                }
+
+                double proba = (double) cellCount[elem] / sum;
+                proba *= value;
+                UpdateEntity(entity, elem, proba);
+                alreadyVisited.Add(elem);
+
+                foreach (var clust in Graph.GetClustersFor(elem))
+                {
+                    Forward(entity, value, alreadyVisited, clust);
                 }
             }
-
-            if (observe.HasFlag(Entity.Poop))
-            {
-                foreach (var cell in surroundings)
-                {
-                    var newProba = (double) 1 / nbSurroundings;
-                    UpdateMonster(cell, Probs[cell][Entity.Monster] + newProba);
-                    if (Probs[cell][Entity.Monster] > 1)
-                    {
-                        UpdateMonster(cell, 1);
-                        //throw  new InvalidDataException("Proba is too high");
-                    }
-                }
-            }
-
-            if (observe.HasFlag(Entity.Pit))
-            {
-                UpdatePit(MyPos, 1);
-                //Maybe see if some other cells proba might change
-            }
-
-            if (observe.HasFlag(Entity.Monster))
-            {
-                UpdateMonster(MyPos, 1);
-            }
-
-            // todo Irindul March 21, 2019 : Add others proba
-            // todo Irindul March 21, 2019 : Check what other tiles are affected when changing a proba
-
-            //Si y a rien d'autres
-            //On met la proba de monstre/crevasse à 0
         }
 
         private void PlanIntents(Entity observe)
@@ -237,7 +258,7 @@ namespace EnchantedForest.Agent
             foreach (var cellAvailable in Available)
             {
                 var theoretical = MyPos;
-                
+
                 var mem = new Queue<Action>();
 
 
@@ -328,7 +349,7 @@ namespace EnchantedForest.Agent
         {
             explored.Add(current);
             var surroundings = Environment.Map.GetSurroundingCells(current).ToList();
-            
+
             if (surroundings.Contains(end))
             {
                 cells.Enqueue(current);

@@ -89,12 +89,16 @@ namespace EnchantedForest.Agent
             }
         }
 
-        public void RemoveFromEachCluster(int node)
+        public void RemoveNode(int node)
         {
+            Edges.RemoveWhere(tuple => tuple.Item1 == node || tuple.Item2 == node);
+            
             foreach (var cluster in Clusters)
             {
                 cluster.RemoveWhere(cell => cell == node);
             }
+
+            Nodes.Remove(node);
         }
 
         public IEnumerable<HashSet<int>> GetClustersFor(int node)
