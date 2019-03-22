@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,16 +14,11 @@ namespace EnchantedForest.Agent
         private DeathSensor DeathSensor;
         private CellSensor CellSensor { get; }
         private Dictionary<Action, Effector> Effectors { get; }
-        private HashSet<int> Frontier { get; set; }
-        private HashSet<int> AlreadyVisited { get; set; }
         private Queue<Action> Intents { get; set; }
         private ProbabilityMatrix Proba { get; set; }
         private GraphInferer Inferer { get; set; }
         private int MyPos => Environment.Map.AgentPos;
-        private IEnumerable<int> Surrounding => Environment.Map.GetSurroundingCells(MyPos);
         private FakeEnvironment Fake { get; set; }
-        private const double ShootingThreshold = 0.7;
-
 
         public Agent(Forest environment)
         {
@@ -40,8 +34,6 @@ namespace EnchantedForest.Agent
         {
             Inferer = new GraphInferer(new ProbabilityMatrix(Environment.Map.Size), Environment.Map);
             Intents = new Queue<Action>();
-            Frontier = new HashSet<int>();
-            AlreadyVisited = new HashSet<int>();
             Proba = new ProbabilityMatrix(Environment.Map.Size);
             Fake = new FakeEnvironment(Environment, Proba);
         }
@@ -68,14 +60,12 @@ namespace EnchantedForest.Agent
 
         private void Step()
         {
-            bool IsDead = DeathSensor.Observe(Environment);
-            
-            Entity observe = CellSensor.Observe(Environment);
-
+            var isDead = DeathSensor.Observe(Environment);
+            var observe = CellSensor.Observe(Environment);
 
             Infere(observe);
 
-            if (IsDead)
+            if (isDead)
             {
                 Die();
                 return;

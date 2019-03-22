@@ -46,6 +46,7 @@ namespace EnchantedForest.Search
         
         public void Expand()
         {
+            
             while (HasNext())
             {
                 GetNext();
