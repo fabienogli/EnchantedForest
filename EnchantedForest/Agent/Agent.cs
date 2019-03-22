@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using EnchantedForest.Agent.Effectors;
 using EnchantedForest.Environment;
+using EnchantedForest.Search;
 using Entity = EnchantedForest.Environment.Entity;
 
 namespace EnchantedForest.Agent
@@ -21,8 +22,9 @@ namespace EnchantedForest.Agent
         private GraphInferer Inferer { get; set; }
         private int MyPos => Environment.Map.AgentPos;
         private IEnumerable<int> Surrounding => Environment.Map.GetSurroundingCells(MyPos);
-
+        private FakeEnvironment Fake { get; set; }
         private const double ShootingThreshold = 0.7;
+
 
         public Agent(Forest environment)
         {
@@ -41,6 +43,7 @@ namespace EnchantedForest.Agent
             Frontier = new HashSet<int>();
             AlreadyVisited = new HashSet<int>();
             Proba = new ProbabilityMatrix(Environment.Map.Size);
+            Fake = new FakeEnvironment(Environment, Proba);
         }
 
         public void Run()
@@ -54,7 +57,7 @@ namespace EnchantedForest.Agent
 
                 Step();
 
-                Thread.Sleep(900);
+                Thread.Sleep(200);
             }
         }
 
@@ -84,7 +87,7 @@ namespace EnchantedForest.Agent
             }
             else
             {
-                PlanIntents(observe);
+                PlanIntents2();
             }
         }
 
@@ -111,6 +114,41 @@ namespace EnchantedForest.Agent
         {
             Environment.ResetAgent();
             Intents = new Queue<Action>();
+        }
+
+
+        private void PlanIntents2()
+        {
+            var state = new State(Environment.Map, Action.Idle, Environment);
+            var tree = new Tree(new Tree.Node(state, Fake));
+            Fake.Visit(MyPos, Proba);
+            
+            AStarIterator strategy = new AStarIterator(tree, Fake);
+            var node = strategy.GetBestExplored();
+            BacktrackAndBuildIntents(node);
+        }
+
+        private void BacktrackAndBuildIntents(Tree.Node node)
+        {
+            if (node.Parent == null)
+            {
+                return;
+            }
+
+            BacktrackAndBuildIntents(node.Parent);
+            EnqueueIntentFromNode(node);
+        }
+
+        private void EnqueueIntentFromNode(Tree.Node node)
+        {
+            var intent = node.State.Action;
+            Intents.Enqueue(intent);
+        }
+
+        private bool IsGoalNode(Tree.Node node)
+        {
+            Entity entity = node.State.Map.GetEntityAt(node.State.Map.AgentPos);
+            return entity.HasFlag(Entity.Portal);
         }
 
         private void PlanIntents(Entity observe)
@@ -154,7 +192,7 @@ namespace EnchantedForest.Agent
 
             if (throwed)
             {
-                Intents.Enqueue(Environment.Map.GetThrowed(theoreticalOfBest, maxCell));
+                Intents.Enqueue(Environment.Map.ThrowToward(theoreticalOfBest, maxCell));
             }
 
             Intents.Enqueue(Environment.Map.MoveToward(theoreticalOfBest, maxCell));
@@ -203,7 +241,7 @@ namespace EnchantedForest.Agent
 
         private void ThrowRock(int src, int cellAvailable, List<Tuple<int, double>> memory)
         {
-            Action thrower = Environment.Map.GetThrowed(src, cellAvailable);
+            Action thrower = Environment.Map.ThrowToward(src, cellAvailable);
             var target = cellAvailable;
             Environment.HandleThrow(thrower);
             memory.Add(new Tuple<int, double>(target, Proba.GetProbaFor(target, Entity.Monster)));

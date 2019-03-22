@@ -65,27 +65,22 @@ namespace EnchantedForest.Agent
         
         private void PropagateInfoToNewNodes(Entity observe, HashSet<int> surrounding)
         {
-
             var hasPoop = observe.HasFlag(Entity.Poop);
             var hasCloud = observe.HasFlag(Entity.Cloud);
-            var hasNothing = !hasPoop && !hasCloud;
+            var hasMonster = observe.HasFlag(Entity.Monster);
+            var hasPit = observe.HasFlag(Entity.Pit);
+            var hasSomething = hasMonster || hasPit;
 
-            if (hasPoop)
-            {
-                Forward(Entity.Monster, 1, new HashSet<int>(), surrounding);
-            }
+            Forward(Entity.Monster, hasPoop ? 1 : 0, new HashSet<int>(), surrounding);
+            Forward(Entity.Pit, hasCloud ? 1 : 0, new HashSet<int>(), surrounding);
 
-            if (hasCloud)
+            if (hasSomething)
             {
-                Forward(Entity.Pit, 1, new HashSet<int>(), surrounding);
-            }
-
-            if (hasNothing)
-            {
-                Forward(Entity.Monster, 0, new HashSet<int>(), surrounding);
-                Forward(Entity.Pit, 0, new HashSet<int>(), surrounding);
+                return;
             }
             
+            Forward(Entity.Nothing, 0, new HashSet<int>(), surrounding);
+
         }
         
         private void Forward(Entity entity, int value, HashSet<int> alreadyVisited, HashSet<int> cluster)

@@ -12,10 +12,14 @@ namespace EnchantedForest.Search
         public Action Action => Current.Item2;
 
         public Map Map => Current.Item1;
+        
+        public Forest Forest { get; }
 
-        public State(Map entities, Action action)
+        public State(Map entities, Action action, Forest forest)
         {
             Current = new Tuple<Map, Action>(entities, action);
+            Forest = forest;
         }
     }
+    
 }

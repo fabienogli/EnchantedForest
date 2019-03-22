@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using EnchantedForest.Search;
 using Action = EnchantedForest.Agent.Action;
 
 namespace EnchantedForest.Environment
@@ -33,7 +34,6 @@ namespace EnchantedForest.Environment
             Running = forest.Running;
             Map = new Map(forest.Map);
             Fitness = forest.Fitness;
-            Observer = forest.Observer;
             Memory = forest.Memory;
         }
 
@@ -53,7 +53,7 @@ namespace EnchantedForest.Environment
 
         private void Notify()
         {
-            Observer.OnNext(this);
+            Observer?.OnNext(this);
         }
 
         public void Run()
@@ -163,7 +163,6 @@ namespace EnchantedForest.Environment
 
         public bool HandleAction(Action action)
         {
-            Console.Write(action + "/") ;
             switch (action)
             {
                 case Action.Leave:
@@ -281,6 +280,16 @@ namespace EnchantedForest.Environment
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
+        }
+
+        public List<State> GetSuccessors(State currentState)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double GetHeuristicForState(State state)
+        {
+            throw new NotImplementedException();
         }
         
         public void ResetAgent()

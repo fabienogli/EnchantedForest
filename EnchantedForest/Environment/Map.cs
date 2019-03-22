@@ -250,7 +250,7 @@ namespace EnchantedForest.Environment
             throw new InvalidDataException($"Cannot move to tiles that are not adjacent src={src} dest={dest}");
         }
 
-        public Action GetThrowed(int src, int dest)
+        public Action ThrowToward(int src, int dest)
         {
             var up = GetUpFrom(src);
             var down = GetDownFrom(src);
@@ -274,7 +274,7 @@ namespace EnchantedForest.Environment
 
             if (right == dest)
             {
-                return Action.Right;
+                return Action.ThrowRight;
             }
             
             throw new InvalidDataException($"Cannot throw from tiles that are not adjacent, src={src} dest={dest}" );
