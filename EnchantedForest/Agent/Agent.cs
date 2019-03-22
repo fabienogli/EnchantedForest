@@ -12,30 +12,30 @@ namespace EnchantedForest.Agent
         private Forest Environment { get; }
         private CellSensor CellSensor { get; }
         private Dictionary<Action, Effector> Effectors { get; }
-        private HashSet<int> Available { get; set; }
+        private HashSet<int> Frontier { get; set; }
         private HashSet<int> AlreadyVisited { get; set; }
         private Queue<Action> Intents { get; set; }
-        private List<Tuple<int, double>> Memory { get; set; }
-        private int MyPos => Environment.Map.AgentPos;
         private ProbabilityMatrix Proba { get; set; }
-        
-        private IInference Inferer { get; set; }
-        
+        private IInferer Inferer { get; set; }
+        private int MyPos => Environment.Map.AgentPos;
+        private IEnumerable<int> Surrounding => Environment.Map.GetSurroundingCells(MyPos);
+
+        private const double ShootingThreshold = 0.7;
+
         public Agent(Forest environment)
         {
             Environment = environment;
             CellSensor = new CellSensor();
             EffectorFactory.Forest = environment;
             Effectors = EffectorFactory.GetEffectors();
-            AlreadyVisited = new HashSet<int>();
             ResetAgent();
         }
 
         private void ResetAgent()
         {
-            Inferer = new GraphInference(new ProbabilityMatrix(Environment.Map.Size), Environment.Map);
+            Inferer = new GraphInferer(new ProbabilityMatrix(Environment.Map.Size), Environment.Map);
             Intents = new Queue<Action>();
-            Available = new HashSet<int>();
+            Frontier = new HashSet<int>();
             AlreadyVisited = new HashSet<int>();
             Proba = new ProbabilityMatrix(Environment.Map.Size);
         }
@@ -69,15 +69,7 @@ namespace EnchantedForest.Agent
 
             if (Intents.Any())
             {
-                var intent = Intents.Dequeue();
-
-                var effector = Effectors[intent];
-                var done = effector.DoIt();
-
-                if (intent.Equals(Action.Leave) && done)
-                {
-                    ResetAgent();
-                }
+                DealWithIntent();
             }
             else
             {
@@ -85,84 +77,131 @@ namespace EnchantedForest.Agent
             }
         }
 
+        private void DealWithIntent()
+        {
+            var intent = Intents.Dequeue();
+
+            var effector = Effectors[intent];
+            var done = effector.DoIt();
+
+            if (intent.Equals(Action.Leave) && done)
+            {
+                ResetAgent();
+            }
+        }
+
         private void PlanIntents(Entity observe)
         {
-            if (observe.HasFlag(Entity.Portal))
+            if (HandleEvidentCases(observe))
             {
-                Intents = new Queue<Action>();
-                Intents.Enqueue(Action.Leave);
                 return;
             }
 
-            var treshold = 5;
             double maxWin = -1;
-            var maxI = 0;
-            var throwed = false;
-
-            Memory = new List<Tuple<int, double>>();
+            var maxCell = 0;
             var theoreticalOfBest = MyPos;
-
-            var surroundingsNotVisited = Environment.Map.GetSurroundingCells(MyPos)
-                .Where(cell => !AlreadyVisited.Contains(cell));
+            var surroundingsNotVisited = Surrounding.Where(cell => !AlreadyVisited.Contains(cell));
 
             foreach (var surrounding in surroundingsNotVisited)
             {
-                Available.Add(surrounding);
+                Frontier.Add(surrounding);
             }
 
-            Available.Remove(MyPos);
+            Frontier.Remove(MyPos);
             AlreadyVisited.Add(MyPos);
 
-            var intentOfBest = new Queue<Action>();
-            var surroundings = Environment.Map.GetSurroundingCells(MyPos).ToList();
+            var intentsOfBest = new Queue<Action>();
+            var throwed = false;
 
-            foreach (var cellAvailable in Available)
+            foreach (var cellAvailable in Frontier)
             {
-                var theoretical = MyPos;
+                var isBestSoFar = Explore(cellAvailable, maxWin, ref throwed);
 
-                var mem = new Queue<Action>();
-
-
-                if (!surroundings.Contains(cellAvailable))
-                {
-                    foreach (var intent in Intents)
-                    {
-                        mem.Enqueue(intent);
-                    }
-
-                    ShortestPath(cellAvailable);
-                    theoretical = ComputeTheoretical();
-                }
-
-                if (Proba.GetProbaFor(cellAvailable, Entity.Monster) > treshold)
-                {
-                    // todo Irindul March 21, 2019 : check if working properly !
-                    ThrowRock(theoretical, cellAvailable);
-                    throwed = true;
-                }
-
-                if (!(Proba.GetProbaFor(cellAvailable, Entity.Portal) > maxWin))
-                {
-                    RollbackThrow();
-                    Intents = mem;
-                    throwed = false;
+                if (!isBestSoFar)
                     continue;
-                }
 
                 maxWin = Proba.GetProbaFor(cellAvailable, Entity.Portal);
-                maxI = cellAvailable;
-                intentOfBest = Intents;
-                theoreticalOfBest = theoretical;
+                maxCell = cellAvailable;
+                intentsOfBest = Intents;
+                theoreticalOfBest = ComputeTheoretical();
                 Intents = new Queue<Action>();
             }
 
-            Intents = intentOfBest;
+            Intents = intentsOfBest;
+
             if (throwed)
             {
-                Intents.Enqueue(GetThrowed(theoreticalOfBest, maxI));
+                Intents.Enqueue(Environment.Map.GetThrowed(theoreticalOfBest, maxCell));
             }
 
-            Intents.Enqueue(MoveToward(theoreticalOfBest, maxI));
+            Intents.Enqueue(Environment.Map.MoveToward(theoreticalOfBest, maxCell));
+        }
+
+        private bool HandleEvidentCases(Entity observe)
+        {
+            if (!observe.HasFlag(Entity.Portal))
+                return false;
+
+            Intents = new Queue<Action>();
+            Intents.Enqueue(Action.Leave);
+            return true;
+        }
+
+        private bool Explore(int cell, double bestProbaSoFar, ref bool thrown)
+        {
+            var theoretical = MyPos;
+            var rememberedOldProbas = new List<Tuple<int, double>>();
+
+            if (Surrounding.Contains(cell))
+            {
+                ShortestPath(cell);
+                theoretical = ComputeTheoretical();
+            }
+
+            if (ShouldShoot(cell))
+            {
+                ThrowRock(theoretical, cell, rememberedOldProbas);
+                thrown = true;
+            }
+
+            if (PortalOutcome(cell) >= bestProbaSoFar)
+            {
+                return true;
+            }
+
+            Rollback(ref thrown, rememberedOldProbas);
+            return false;
+        }
+
+        private bool ShouldShoot(int cell)
+        {
+            return Proba.GetProbaFor(cell, Entity.Monster) > ShootingThreshold;
+        }
+
+        private void ThrowRock(int src, int cellAvailable, List<Tuple<int, double>> memory)
+        {
+            Action thrower = Environment.Map.GetThrowed(src, cellAvailable);
+            var target = cellAvailable;
+            Environment.HandleThrow(thrower);
+            memory.Add(new Tuple<int, double>(target, Proba.GetProbaFor(target, Entity.Monster)));
+            Proba.UpdateEntity(Entity.Monster, target, 0);
+            // todo Irindul March 22, 2019 : Check if still updated in graph
+        }
+
+        private void Rollback(ref bool thrown, List<Tuple<int, double>> memory)
+        {
+            if (thrown)
+            {
+                RollbackThrow(memory);
+                thrown = false;
+            }
+
+            Intents = new Queue<Action>();
+        }
+
+        private double PortalOutcome(int cell)
+        {
+            return Proba.GetProbaFor(cell, Entity.Portal);
         }
 
         private int ComputeTheoretical()
@@ -200,7 +239,7 @@ namespace EnchantedForest.Agent
             while (cells.Any())
             {
                 var prev = cells.Dequeue();
-                var action = MoveToward(prev, dest);
+                var action = Environment.Map.MoveToward(prev, dest);
                 Intents.Enqueue(action);
                 dest = prev;
             }
@@ -231,72 +270,13 @@ namespace EnchantedForest.Agent
             return false;
         }
 
-        private Action MoveToward(int src, int dest)
-        {
-            var up = Environment.Map.GetUpFrom(src);
-            var down = Environment.Map.GetDownFrom(src);
-            var left = Environment.Map.GetLeftFrom(src);
-            var right = Environment.Map.GetRightFrom(src);
-
-            if (up == dest)
-            {
-                return Action.Up;
-            }
-
-            if (down == dest)
-            {
-                return Action.Down;
-            }
-
-            if (left == dest)
-            {
-                return Action.Left;
-            }
-
-            if (right == dest)
-            {
-                return Action.Right;
-            }
-
-            return Action.Idle;
-        }
-
-        private Action GetThrowed(int src, int dest)
-        {
-            var up = Environment.Map.GetUpFrom(src);
-            var down = Environment.Map.GetDownFrom(src);
-            var left = Environment.Map.GetLeftFrom(src);
-
-            if (up == dest)
-            {
-                return Action.ThrowUp;
-            }
-
-            if (down == dest)
-            {
-                return Action.ThrowDown;
-            }
-
-            return left == dest ? Action.ThrowLeft : Action.ThrowRight;
-        }
-
-        private void RollbackThrow()
+        private void RollbackThrow(IEnumerable<Tuple<int, double>> memory)
         {
             Environment.RollBackRipple();
-            foreach (var (key, oldValue) in Memory)
+            foreach (var (key, oldValue) in memory)
             {
                 Proba.UpdateEntity(Entity.Monster, key, oldValue);
             }
-        }
-
-        private void ThrowRock(int src, int cellAvailable)
-        {
-            Action thrower = GetThrowed(src, cellAvailable);
-            var target = cellAvailable;
-
-            Environment.HandleThrow(thrower);
-            Memory.Add(new Tuple<int, double>(target, Proba.GetProbaFor(target, Entity.Monster)));
-            Proba.UpdateEntity(Entity.Monster, target, 0);
         }
     }
 }

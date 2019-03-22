@@ -2,7 +2,7 @@ using EnchantedForest.Environment;
 
 namespace EnchantedForest.Agent
 {
-    public interface IInference
+    public interface IInferer
     {
         void Infere(Entity observe);
     }

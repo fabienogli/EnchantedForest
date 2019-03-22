@@ -4,7 +4,7 @@ using EnchantedForest.Environment;
 
 namespace EnchantedForest.Agent
 {
-    public class GraphInference : IInference
+    public class GraphInferer : IInferer
     {
         private Graph Graph { get; }
         private ProbabilityMatrix Proba { get; }
@@ -16,7 +16,7 @@ namespace EnchantedForest.Agent
         
         private IEnumerable<int> Surrounding => Map.GetSurroundingCells(MyPos);
 
-        public GraphInference(ProbabilityMatrix proba, Map map)
+        public GraphInferer(ProbabilityMatrix proba, Map map)
         {
             Proba = proba;
             Map = map;
