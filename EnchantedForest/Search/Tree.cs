@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using EnchantedForest.Environment;
 
 namespace EnchantedForest.Search
@@ -37,6 +38,50 @@ namespace EnchantedForest.Search
             public void AddChild(Node child)
             {
                 Children.Add(child);
+            }
+
+            protected bool Equals(Node other)
+            {
+                return Equals(Parent, other.Parent) && Equals(State, other.State) && Depth == other.Depth && Cost == other.Cost;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                return obj.GetType() == GetType() && Equals((Node) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = (Parent != null ? Parent.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ (State != null ? State.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ Depth;
+                    hashCode = (hashCode * 397) ^ Cost;
+                    return hashCode;
+                }
+            }
+
+            public bool IsLeaf()
+            {
+                return Children.Count == 0;
+            }
+
+            public override string ToString()
+            {
+                return RecursiveToString();
+            }
+
+            private string RecursiveToString()
+            {
+                if (Parent == null)
+                {
+                    return State.Action.ToString();
+                }
+
+                return Parent.RecursiveToString() + "->" + State.Action;
             }
         }
 
