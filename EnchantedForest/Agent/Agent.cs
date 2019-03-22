@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using EnchantedForest.Agent.Effectors;
 using EnchantedForest.Environment;
 using Entity = EnchantedForest.Environment.Entity;
 
@@ -10,6 +11,7 @@ namespace EnchantedForest.Agent
     public class Agent
     {
         private Forest Environment { get; }
+        private DeathSensor DeathSensor;
         private CellSensor CellSensor { get; }
         private Dictionary<Action, Effector> Effectors { get; }
         private HashSet<int> Frontier { get; set; }
@@ -26,6 +28,7 @@ namespace EnchantedForest.Agent
         {
             Environment = environment;
             CellSensor = new CellSensor();
+            DeathSensor = new DeathSensor();
             EffectorFactory.Forest = environment;
             Effectors = EffectorFactory.GetEffectors();
             ResetAgent();
@@ -62,11 +65,19 @@ namespace EnchantedForest.Agent
 
         private void Step()
         {
-//            Performance = PerformanceSensor.Observe(Environment);
-            var observe = CellSensor.Observe(Environment);
+            bool IsDead = DeathSensor.Observe(Environment);
+            
+            Entity observe = CellSensor.Observe(Environment);
+
 
             Infere(observe);
 
+            if (IsDead)
+            {
+                Die();
+                return;
+            }
+            
             if (Intents.Any())
             {
                 DealWithIntent();
@@ -94,6 +105,12 @@ namespace EnchantedForest.Agent
             {
                 ResetAgent();
             }
+        }
+        
+        private void Die()
+        {
+            Environment.ResetAgent();
+            Intents = new Queue<Action>();
         }
 
         private void PlanIntents(Entity observe)

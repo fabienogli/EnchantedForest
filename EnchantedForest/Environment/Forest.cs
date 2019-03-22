@@ -14,6 +14,9 @@ namespace EnchantedForest.Environment
         private Map Memory { get; set; }
         public int Fitness { get; set; }
 
+        public bool AgentDead { get; private set; }
+        public int InitPosAgent { get; private set; }
+
         public Forest(int size)
         {
             //Only once initialization to get uniform result
@@ -131,6 +134,7 @@ namespace EnchantedForest.Environment
         {
             var agentPos = Rand.Next(Map.Size);
             Map.AgentPos = agentPos;
+            InitPosAgent = agentPos;
             Map.AddEntityAtPos(Entity.Agent, agentPos);
         }
 
@@ -182,9 +186,17 @@ namespace EnchantedForest.Environment
             }
             
             Map.ApplyAction(action);
-            Console.WriteLine("new pos =" + Map.AgentPos);
+            CheckDie();
             Notify();
             return true;
+        }
+
+        private void CheckDie()
+        {
+            if (Map.ContainsEntityAtPos(Entity.Pit, Map.AgentPos) || Map.ContainsEntityAtPos(Entity.Monster, Map.AgentPos))
+            {
+                AgentDead = true;
+            }
         }
 
         public void HandleThrow(Action action)
@@ -269,6 +281,13 @@ namespace EnchantedForest.Environment
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
+        }
+        
+        public void ResetAgent()
+        {
+            Map.MoveAgentTo(InitPosAgent);
+            AgentDead = false;
+            Notify();
         }
     }
 
