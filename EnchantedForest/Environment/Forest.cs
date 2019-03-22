@@ -14,6 +14,8 @@ namespace EnchantedForest.Environment
         private Map Memory { get; set; }
         public int Fitness { get; set; }
 
+        public bool AgentDead;
+
         public Forest(int size)
         {
             //Only once initialization to get uniform result
@@ -182,9 +184,18 @@ namespace EnchantedForest.Environment
             }
             
             Map.ApplyAction(action);
-            Console.WriteLine("new pos =" + Map.AgentPos);
             Notify();
+            CheckDie();
             return true;
+        }
+
+        private void CheckDie()
+        {
+            int posAgent = Map.AgentPos;
+            if (Map.ContainsEntityAtPos(Entity.Pit, posAgent) || Map.ContainsEntityAtPos(Entity.Monster, posAgent))
+            {
+                
+            }
         }
 
         public void HandleThrow(Action action)
@@ -248,6 +259,11 @@ namespace EnchantedForest.Environment
                     Map.AddEntityAtPos(Entity.Monster, pos);
                 }
             }
+        }
+
+        public bool IsAgentDead()
+        {
+            return AgentDead;
         }
     }
 

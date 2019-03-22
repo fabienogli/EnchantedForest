@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using EnchantedForest.Agent.Effectors;
 using EnchantedForest.Environment;
 using Action = EnchantedForest.Agent.Action;
 using Entity = EnchantedForest.Environment.Entity;
@@ -14,8 +15,10 @@ namespace EnchantedForest.Agent
     public class Agent
     {
         private CellSensor CellSensor;
+        private DeathSensor DeathSensor;
         private HashSet<int> Available;
 
+        private Dictionary<Entity, Dictionary<int, Hypothesis>> dictionary;
         private Dictionary<Action, Effector> Effectors { get; }
         private Dictionary<int, Dictionary<Entity, double>> Probs;
         private HashSet<int> AlreadyVisited { get; set; }
@@ -36,6 +39,7 @@ namespace EnchantedForest.Agent
         {
             Environment = environment;
             CellSensor = new CellSensor();
+            DeathSensor = new DeathSensor();
             EffectorFactory.Forest = environment;
             Effectors = EffectorFactory.GetEffectors();
             AlreadyVisited = new HashSet<int>();
@@ -119,13 +123,17 @@ namespace EnchantedForest.Agent
 
         private void Step()
         {
-//            Beliefs = RoomSensor.Observe(Environment);
-//            Performance = PerformanceSensor.Observe(Environment);
+            bool IsDead = DeathSensor.Observe(Environment);
+            
             Entity observe = CellSensor.Observe(Environment);
-
 
             Infere(observe);
 
+            if (IsDead)
+            {
+                Die();
+            }
+            
             if (Intents.Any())
             {
                 var intent = Intents.Dequeue();
@@ -142,6 +150,11 @@ namespace EnchantedForest.Agent
             {
                 PlanIntents(observe);
             }
+        }
+
+        private void Die()
+        {
+            throw new NotImplementedException();
         }
 
         private void Infere(Entity observe)
