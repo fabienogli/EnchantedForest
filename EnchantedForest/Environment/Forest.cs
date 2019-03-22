@@ -185,6 +185,7 @@ namespace EnchantedForest.Environment
             }
             
             Map.ApplyAction(action);
+            Notify();
             CheckDie();
             Notify();
             return true;

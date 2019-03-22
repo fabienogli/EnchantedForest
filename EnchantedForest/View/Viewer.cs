@@ -31,7 +31,7 @@ namespace EnchantedForest.View
             while (Running)
             {
                 TimeSpan t = watch.Elapsed;
-                if (t.TotalMilliseconds - n.TotalMilliseconds > 800)
+                if (t.TotalMilliseconds - n.TotalMilliseconds > 600)
                 {
                     //Reset timespans
                     n = t;

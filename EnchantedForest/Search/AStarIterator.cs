@@ -49,6 +49,7 @@ namespace EnchantedForest.Search
             
             while (HasNext())
             {
+                
                 GetNext();
                 CreateAndEnqueueNodes(Current, Environment.GetSuccessors(Current.State));
                 
@@ -105,10 +106,37 @@ namespace EnchantedForest.Search
                 var node = new Tree.Node(parent, state, Environment);
                 parent.AddChild(node);
                 var prio = GetPriority(node);
-                Frontier.Enqueue(node, prio);
-                //Visited.Add(state);
+
+                if(!CheckLoop(node, new HashSet<int>()))
+                {
+                    Frontier.Enqueue(node, prio);    
+                }
             });
         }
+
+        private bool CheckLoop(Tree.Node node, HashSet<int> visited)
+        {
+            if (node.Parent == null)
+            {
+                return false;
+            }
+
+            if (visited.Contains(node.State.Map.AgentPos))
+            {
+                return true;
+            }
+            
+
+            if (!IsThrow(node.State.Action))
+            {
+                visited.Add(node.State.Map.AgentPos);    
+            }
+            
+            return CheckLoop(node.Parent, visited);
+
+        }
+        
+        
 
         private double GetPriority(Tree.Node current)
         {

@@ -77,7 +77,7 @@ namespace EnchantedForest.Agent
             }
             else
             {
-                PlanIntents();
+                PlanIntents(observe);
             }
         }
 
@@ -106,8 +106,15 @@ namespace EnchantedForest.Agent
             Intents = new Queue<Action>();
         }
 
-        private void PlanIntents()
+        private void PlanIntents(Entity observe)
         {
+            if (observe.HasFlag(Entity.Portal))
+            {
+                Intents = new Queue<Action>();
+                Intents.Enqueue(Action.Leave);
+                return;
+            }
+            
             var state = new State(Environment.Map, Action.Idle, Environment);
             var tree = new Tree(new Tree.Node(state, Fake));
             Fake.Visit(MyPos, Proba);
