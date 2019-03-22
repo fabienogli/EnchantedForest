@@ -75,6 +75,8 @@ namespace EnchantedForest.Agent
                     Probs[i].Add(Entity.Nothing, nothing);
                 }
             }
+
+            dictionary = Hypothesis.GenerateHypothesis(Environment.Map, MyPos);
         }
 
         public void UpdateMonster(int cell, double newProba)
@@ -163,7 +165,27 @@ namespace EnchantedForest.Agent
             {
                 return;
             }
-
+            switch (observe)
+            {
+                case Entity.Nothing:
+                    break;
+                case Entity.Monster:
+                case Entity.Pit:
+                    Dictionary<int, Hypothesis> hypotheses = dictionary[observe];
+                    Hypothesis trueHypothesis = hypotheses[MyPos];
+                    Hypothesis.Assert(dictionary, trueHypothesis);
+                    break;
+                case Entity.Poop:
+                case Entity.Cloud:
+                    Evidence evidence = new Evidence(MyPos, observe);
+                    Hypothesis.Assert(dictionary, evidence);
+                    break;
+                case Entity.Portal:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(observe), observe, null);
+            }
+            
             var surroundings = Environment.Map.GetSurroundingCells(MyPos)
                 .Where(cell => !AlreadyVisited.Contains(cell))
                 .ToList();
