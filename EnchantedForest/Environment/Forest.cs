@@ -22,7 +22,7 @@ namespace EnchantedForest.Environment
         {
             //Only once initialization to get uniform result
             //Seeding to reproduce outcomes easily
-            Rand = new Random(1);
+            Rand = new Random(4);
 
             Running = true;
 
@@ -163,6 +163,8 @@ namespace EnchantedForest.Environment
 
         public bool HandleAction(Action action)
         {
+            Fitness += GetFitnessForAction(action);
+
             switch (action)
             {
                 case Action.Leave:
@@ -184,7 +186,7 @@ namespace EnchantedForest.Environment
                     
             }
             
-            Map.ApplyAction(action);
+            Map.ApplyAction(action);            
             Notify();
             CheckDie();
             Notify();
@@ -196,6 +198,7 @@ namespace EnchantedForest.Environment
             if (Map.ContainsEntityAtPos(Entity.Pit, Map.AgentPos) || Map.ContainsEntityAtPos(Entity.Monster, Map.AgentPos))
             {
                 AgentDead = true;
+                Fitness -= 10 * Map.Size;
             }
         }
 
@@ -293,6 +296,26 @@ namespace EnchantedForest.Environment
             throw new NotImplementedException();
         }
         
+        public int GetFitnessForAction(Action action)
+        {
+            switch (action)
+            {
+                case Action.Left:
+                case Action.Right:
+                case Action.Up:
+                case Action.Down:
+                    return -1;
+                case Action.ThrowLeft:
+                case Action.ThrowRight:
+                case Action.ThrowUp:
+                case Action.ThrowDown:
+                    return -10;
+                case Action.Leave:
+                    return 10 * Map.Size;
+                default:
+                    return 0;
+            }
+        }
         public void ResetAgent()
         {
             Map.MoveAgentTo(InitPosAgent);

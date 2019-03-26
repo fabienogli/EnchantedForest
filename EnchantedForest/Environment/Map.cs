@@ -8,8 +8,6 @@ namespace EnchantedForest.Environment
 {
     public class Map
     {
-        //todo count Poop and Wind amount
-        //todo subenum Asset etc..
         private List<Entity> Cells { get; }
         
         public int Size => Cells.Capacity;

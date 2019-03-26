@@ -26,8 +26,6 @@ namespace EnchantedForest.Environment
             }
             
             StringBuilder sb = new StringBuilder();
-            // todo Irindul March 19, 2019 : Mapping for one Cloud = w etc...
-            
             sb.Append(obj.HasFlag(Entity.Agent) ? "x" : " ");
             sb.Append(obj.HasFlag(Entity.Portal) ? "0" : " ");
             sb.Append(obj.HasFlag(Entity.Monster) ? "m" : " ");
