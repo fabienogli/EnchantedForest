@@ -165,25 +165,27 @@ namespace EnchantedForest.Agent
             {
                 return;
             }
-            switch (observe)
+            if (Environment.Map.ContainsEntityAtPos(Entity.Pit, MyPos))
             {
-                case Entity.Nothing:
-                    break;
-                case Entity.Monster:
-                case Entity.Pit:
-                    Dictionary<int, Hypothesis> hypotheses = dictionary[observe];
-                    Hypothesis trueHypothesis = hypotheses[MyPos];
-                    Hypothesis.Assert(dictionary, trueHypothesis);
-                    break;
-                case Entity.Poop:
-                case Entity.Cloud:
-                    Evidence evidence = new Evidence(MyPos, observe);
-                    Hypothesis.Assert(dictionary, evidence);
-                    break;
-                case Entity.Portal:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(observe), observe, null);
+                Dictionary<int, Hypothesis> hypotheses = dictionary[Entity.Pit];
+                Hypothesis trueHypothesis = hypotheses[MyPos];
+                Hypothesis.Assert(dictionary, trueHypothesis);
+            }
+            if (Environment.Map.ContainsEntityAtPos(Entity.Monster, MyPos))
+            {
+                Dictionary<int, Hypothesis> hypotheses = dictionary[Entity.Monster];
+                Hypothesis trueHypothesis = hypotheses[MyPos];
+                Hypothesis.Assert(dictionary, trueHypothesis);
+            }
+            if (Environment.Map.ContainsEntityAtPos(Entity.Poop, MyPos))
+            {
+                Evidence evidence = new Evidence(MyPos, observe);
+                Hypothesis.Assert(dictionary, evidence);
+            }
+            if (Environment.Map.ContainsEntityAtPos(Entity.Cloud, MyPos))
+            {
+                Evidence evidence = new Evidence(MyPos, observe);
+                Hypothesis.Assert(dictionary, evidence);
             }
             
             var surroundings = Environment.Map.GetSurroundingCells(MyPos)
